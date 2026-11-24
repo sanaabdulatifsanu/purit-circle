@@ -51,16 +51,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const adminMenuItems: { id: AdminSubView; label: string; icon: React.FC<{ className?: string }> }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'managers', label: 'Managers', icon: Users },
-    { id: 'referrals', label: 'Referral Management', icon: Layers },
-    { id: 'restaurants', label: 'Referred Restaurants', icon: Store },
-    { id: 'sales', label: 'Sales Analytics', icon: TrendingUp },
-    { id: 'reward-config', label: 'Reward Configuration', icon: Sliders },
-    { id: 'referral-rewards', label: '₹2,000 Referral Rewards', icon: Sparkles },
-    { id: 'wallet', label: 'Rewards Wallet', icon: Wallet },
-    { id: 'claims', label: 'Reward Claims', icon: Gift },
-    { id: 'payouts', label: 'Payout Management', icon: FileCheck2 },
+    { id: 'restaurants', label: 'Restaurants', icon: Store },
+    { id: 'rewards-claims', label: 'Rewards & Claims', icon: Gift },
+    { id: 'payouts-reports', label: 'Payouts & Reports', icon: FileCheck2 },
     { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'reports', label: 'Reports', icon: FileSpreadsheet },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -158,7 +152,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           ) : (
             adminMenuItems.map(item => {
               const Icon = item.icon;
-              const isActive = adminSubView === item.id;
+              const isActive = 
+                (item.id === 'managers' && (adminSubView === 'managers' || adminSubView === 'referrals')) ||
+                (item.id === 'rewards-claims' && (adminSubView === 'rewards-claims' || adminSubView === 'reward-config' || adminSubView === 'referral-rewards' || adminSubView === 'wallet' || adminSubView === 'claims')) ||
+                (item.id === 'payouts-reports' && (adminSubView === 'payouts-reports' || adminSubView === 'payouts' || adminSubView === 'reports')) ||
+                adminSubView === item.id;
               return (
                 <button
                   key={item.id}
@@ -167,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     onClose();
                   }}
                   className={`
-                    w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all
+                    w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all
                     ${isActive 
                       ? 'bg-[#1B6B50] text-white shadow-sm font-semibold' 
                       : 'text-[#E2E9E3]/80 hover:bg-[#1B6B50]/40 hover:text-white'}

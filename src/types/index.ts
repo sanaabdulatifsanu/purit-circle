@@ -14,17 +14,19 @@ export type ManagerSubView =
 export type AdminSubView = 
   | 'overview' 
   | 'managers' 
-  | 'referrals' 
   | 'restaurants' 
+  | 'rewards-claims' 
+  | 'payouts-reports' 
+  | 'notifications' 
+  | 'settings'
+  | 'referrals' 
   | 'sales' 
   | 'reward-config' 
   | 'referral-rewards' 
   | 'wallet' 
   | 'claims' 
   | 'payouts' 
-  | 'notifications' 
-  | 'reports' 
-  | 'settings';
+  | 'reports';
 
 export interface Manager {
   id: string;
