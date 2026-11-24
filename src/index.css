@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #123C32;
+  --color-secondary: #1B6B50;
+  --color-accent: #D5AE62;
+  --color-background: #F7F5EF;
+  --color-card: #FFFFFF;
+  --color-text-primary: #202B27;
+  --color-text-secondary: #78847D;
+  --color-success: #21865A;
+  --color-warning: #D99A32;
+  --color-error: #D9534F;
+  --color-border: #E2E9E3;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F7F5EF;
+}
+::-webkit-scrollbar-thumb {
+  background: #E2E9E3;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #78847D;
+}
+
+/* Card styling */
+.purity-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E9E3;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(18, 60, 50, 0.04);
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: #123C32;
+  color: #FFFFFF;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-primary:hover {
+  background-color: #1B6B50;
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: #FFFFFF;
+  color: #123C32;
+  border: 1px solid #E2E9E3;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-secondary:hover {
+  background-color: #F7F5EF;
+  border-color: #1B6B50;
+}
+
+/* Accent Badge / Button */
+.btn-accent {
+  background-color: #D5AE62;
+  color: #123C32;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-accent:hover {
+  background-color: #c79e50;
+}
