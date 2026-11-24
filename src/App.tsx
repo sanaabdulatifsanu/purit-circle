@@ -18,17 +18,12 @@ import { ProfileView } from './components/manager/ProfileView';
 
 // Admin Modules
 import { AdminOverview } from './components/admin/AdminOverview';
-import { AdminManagers } from './components/admin/AdminManagers';
-import { AdminReferralManagement } from './components/admin/AdminReferralManagement';
+import { AdminManagersView } from './components/admin/AdminManagersView';
 import { AdminReferredRestaurants } from './components/admin/AdminReferredRestaurants';
-import { AdminSalesAnalytics } from './components/admin/AdminSalesAnalytics';
-import { AdminRewardConfig } from './components/admin/AdminRewardConfig';
-import { AdminReferralRewards } from './components/admin/AdminReferralRewards';
-import { AdminWalletManagement } from './components/admin/AdminWalletManagement';
-import { AdminRewardClaims } from './components/admin/AdminRewardClaims';
-import { AdminPayouts } from './components/admin/AdminPayouts';
-import { AdminReports } from './components/admin/AdminReports';
+import { AdminRewardsAndClaims } from './components/admin/AdminRewardsAndClaims';
+import { AdminPayoutsAndReports } from './components/admin/AdminPayoutsAndReports';
 import { AdminSettings } from './components/admin/AdminSettings';
+import { AdminSalesAnalytics } from './components/admin/AdminSalesAnalytics';
 
 const MainLayout: React.FC = () => {
   const { isAuthenticated, role, managerSubView, adminSubView } = useApp();
@@ -73,18 +68,17 @@ const MainLayout: React.FC = () => {
           ) : (
             <>
               {adminSubView === 'overview' && <AdminOverview />}
-              {adminSubView === 'managers' && <AdminManagers />}
-              {adminSubView === 'referrals' && <AdminReferralManagement />}
+              {(adminSubView === 'managers' || adminSubView === 'referrals') && <AdminManagersView />}
               {adminSubView === 'restaurants' && <AdminReferredRestaurants />}
-              {adminSubView === 'sales' && <AdminSalesAnalytics />}
-              {adminSubView === 'reward-config' && <AdminRewardConfig />}
-              {adminSubView === 'referral-rewards' && <AdminReferralRewards />}
-              {adminSubView === 'wallet' && <AdminWalletManagement />}
-              {adminSubView === 'claims' && <AdminRewardClaims />}
-              {adminSubView === 'payouts' && <AdminPayouts />}
+              {['rewards-claims', 'reward-config', 'referral-rewards', 'wallet', 'claims'].includes(adminSubView) && (
+                <AdminRewardsAndClaims />
+              )}
+              {['payouts-reports', 'payouts', 'reports'].includes(adminSubView) && (
+                <AdminPayoutsAndReports />
+              )}
               {adminSubView === 'notifications' && <NotificationsView />}
-              {adminSubView === 'reports' && <AdminReports />}
               {adminSubView === 'settings' && <AdminSettings />}
+              {adminSubView === 'sales' && <AdminSalesAnalytics />}
             </>
           )}
         </main>
