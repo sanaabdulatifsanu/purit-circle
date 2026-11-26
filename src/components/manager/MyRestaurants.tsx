@@ -1,25 +1,33 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
-  Store, 
   PlusCircle, 
+  Plus,
   Search, 
   Filter, 
   MapPin, 
   Phone, 
   Mail, 
-  ArrowRight, 
+  MoreVertical, 
   FileText, 
   X,
   TrendingUp,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Package,
+  Sparkles,
+  Calendar
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { RestaurantReferral } from '../../types';
 
 export const MyRestaurants: React.FC = () => {
-  const { currentManager, restaurants, salesTransactions, addRestaurantReferral } = useApp();
+  const { 
+    currentManager, 
+    restaurants, 
+    salesTransactions, 
+    setIsAddRestaurantModalOpen 
+  } = useApp();
 
   // Scoped strictly to current manager
   const myRestaurants = restaurants.filter(r => r.managerId === currentManager.id);
@@ -28,26 +36,7 @@ export const MyRestaurants: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'pending' | 'rejected'>('all');
   
   // Modals
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<RestaurantReferral | null>(null);
-  const [formFeedback, setFormFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-  // Form State
-  const [formData, setFormData] = useState({
-    restaurantName: '',
-    ownerName: '',
-    contactPerson: '',
-    mobile: '',
-    email: '',
-    address: '',
-    city: 'Bengaluru',
-    state: 'Karnataka',
-    pinCode: '',
-    gstNumber: '',
-    category: 'Casual Dining' as RestaurantReferral['category'],
-    existingPurityCustomerId: '',
-    remarks: ''
-  });
 
   const filteredRestaurants = myRestaurants.filter(r => {
     const matchesSearch = r.restaurantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,109 +46,124 @@ export const MyRestaurants: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormFeedback(null);
-
-    const result = addRestaurantReferral(formData);
-    if (result.success) {
-      setFormFeedback({ type: 'success', message: result.message });
-      setTimeout(() => {
-        setIsAddModalOpen(false);
-        setFormFeedback(null);
-        setFormData({
-          restaurantName: '',
-          ownerName: '',
-          contactPerson: '',
-          mobile: '',
-          email: '',
-          address: '',
-          city: 'Bengaluru',
-          state: 'Karnataka',
-          pinCode: '',
-          gstNumber: '',
-          category: 'Casual Dining',
-          existingPurityCustomerId: '',
-          remarks: ''
-        });
-      }, 1500);
-    } else {
-      setFormFeedback({ type: 'error', message: result.message });
-    }
-  };
-
   // Find sales transactions for selected restaurant drill-down
   const restaurantSales = selectedRestaurant
     ? salesTransactions.filter(tx => tx.restaurantId === selectedRestaurant.id)
     : [];
 
+  // Aggregated product purchase breakdown for selected restaurant
+  const productSummary = React.useMemo(() => {
+    if (!selectedRestaurant) return [];
+    
+    const summaryMap: { [name: string]: {
+      productId: string;
+      productName: string;
+      category: string;
+      totalUnits: number;
+      unitPrice: number;
+      totalAmount: number;
+      rewardEarned: number;
+      lastDate: string;
+    }} = {};
+
+    restaurantSales.forEach(tx => {
+      tx.items.forEach(item => {
+        if (!summaryMap[item.productName]) {
+          summaryMap[item.productName] = {
+            productId: item.productId,
+            productName: item.productName,
+            category: item.category,
+            totalUnits: 0,
+            unitPrice: item.unitPrice,
+            totalAmount: 0,
+            rewardEarned: 0,
+            lastDate: tx.date
+          };
+        }
+        summaryMap[item.productName].totalUnits += item.unitsSold;
+        summaryMap[item.productName].totalAmount += item.totalAmount;
+        summaryMap[item.productName].rewardEarned += Math.round(item.totalAmount * 0.1);
+        if (new Date(tx.date) > new Date(summaryMap[item.productName].lastDate)) {
+          summaryMap[item.productName].lastDate = tx.date;
+        }
+      });
+    });
+
+    return Object.values(summaryMap).sort((a, b) => b.totalUnits - a.totalUnits);
+  }, [selectedRestaurant, restaurantSales]);
+
+  // Specific unit counts for the 3 key requested products
+  const handWashUnits = productSummary
+    .filter(p => p.productName.toLowerCase().includes('hand wash') && !p.productName.toLowerCase().includes('foam'))
+    .reduce((sum, p) => sum + p.totalUnits, 0);
+
+  const foamWashUnits = productSummary
+    .filter(p => p.productName.toLowerCase().includes('foam'))
+    .reduce((sum, p) => sum + p.totalUnits, 0);
+
+  const hrtRollUnits = productSummary
+    .filter(p => p.productName.toLowerCase().includes('hrt') || p.productName.toLowerCase().includes('ht roll'))
+    .reduce((sum, p) => sum + p.totalUnits, 0);
+
+  const totalUnitsPurchased = productSummary.reduce((sum, p) => sum + p.totalUnits, 0);
+
   return (
     <div className="space-y-6">
       
-      {/* Top Header & Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl p-6 shadow-subtle">
-        <div>
-          <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
-            <Store className="w-6 h-6 text-[#1B6B50]" /> My Referred Restaurants
-          </h1>
-          <p className="text-xs text-[#78847D] mt-1">
-            Manage your submitted restaurant leads and track real-time sales synchronized with Purity Core.
-          </p>
-        </div>
+      {/* Stationary Floating Action Button (Stationary Bottom-Right Corner with Only Plus Icon) */}
+      <button 
+        onClick={() => setIsAddRestaurantModalOpen(true)}
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-[#123C32] text-white shadow-2xl flex items-center justify-center hover:bg-[#1B6B50] active:scale-90 transition-all border-2 border-[#D5AE62] ring-4 ring-[#F7F5EF] focus:outline-none"
+        aria-label="Add Restaurant"
+        title="Add Restaurant"
+      >
+        <Plus className="w-7 h-7 text-white stroke-[2.5]" />
+      </button>
 
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="btn-primary text-xs"
-        >
-          <PlusCircle className="w-4 h-4" />
-          + Add Restaurant
-        </button>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#E2E9E3] rounded-xl p-3 shadow-xs">
-        
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#78847D] absolute left-3 top-1/2 -translate-y-1/2" />
-          <input 
-            type="text"
-            placeholder="Search by restaurant name, city, or Purity ID..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg border border-[#E2E9E3] focus:outline-none focus:border-[#123C32] bg-[#F7F5EF]/50"
-          />
-        </div>
-
-        {/* Status Filter */}
-        <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-[#78847D]" />
-          <select 
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="text-xs bg-[#FFFFFF] border border-[#E2E9E3] rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#123C32] text-[#202B27]"
-          >
-            <option value="all">All Statuses ({myRestaurants.length})</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending Review</option>
-            <option value="inactive">Inactive</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Restaurants Table / Grid */}
+      {/* Unified Restaurants Table & Search Box Model */}
       <div className="purity-card overflow-hidden">
+        
+        {/* Integrated Filter and Search Toolbar */}
+        <div className="p-3 sm:p-4 border-b border-[#E2E9E3] bg-[#FFFFFF] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-[#78847D] absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text"
+              placeholder="Search by restaurant name or city..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-[#E2E9E3] focus:outline-none focus:border-[#123C32] bg-[#F7F5EF]/50"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Filter className="w-3.5 h-3.5 text-[#78847D]" />
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="text-xs bg-[#FFFFFF] border border-[#E2E9E3] rounded-lg px-3 py-2 focus:outline-none focus:border-[#123C32] text-[#202B27]"
+            >
+              <option value="all">All Statuses ({myRestaurants.length})</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending Review</option>
+              <option value="inactive">Inactive</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Table Body */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-[#123C32]/5 border-b border-[#E2E9E3] text-[#78847D] uppercase tracking-wider text-[11px] font-semibold">
                 <th className="py-3 px-4">Restaurant Info</th>
-                <th className="py-3 px-4">Purity Customer ID</th>
                 <th className="py-3 px-4">Category & City</th>
                 <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4 text-right">Monthly Sales</th>
-                <th className="py-3 px-4 text-right">Total Lifetime Sales</th>
                 <th className="py-3 px-4 text-right">Total Rewards</th>
                 <th className="py-3 px-4 text-center">Action</th>
               </tr>
@@ -167,7 +171,7 @@ export const MyRestaurants: React.FC = () => {
             <tbody className="divide-y divide-[#E2E9E3]">
               {filteredRestaurants.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-[#78847D]">
+                  <td colSpan={6} className="py-8 text-center text-[#78847D]">
                     No restaurants match your search or filters. Click "+ Add Restaurant" to refer a new outlet.
                   </td>
                 </tr>
@@ -183,18 +187,6 @@ export const MyRestaurants: React.FC = () => {
                       <div className="text-[11px] text-[#78847D] flex items-center gap-1 mt-0.5">
                         <MapPin className="w-3 h-3 text-[#1B6B50]" /> {rest.address}
                       </div>
-                    </td>
-
-                    <td className="py-3 px-4">
-                      {rest.mappedPurityId ? (
-                        <span className="font-mono font-semibold text-[#123C32] bg-[#123C32]/5 px-2 py-0.5 rounded text-[11px]">
-                          {rest.mappedPurityId}
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-[#D99A32] italic font-medium">
-                          Pending Mapping
-                        </span>
-                      )}
                     </td>
 
                     <td className="py-3 px-4">
@@ -215,10 +207,6 @@ export const MyRestaurants: React.FC = () => {
                       ₹{rest.monthlySales.toLocaleString('en-IN')}
                     </td>
 
-                    <td className="py-3 px-4 text-right font-bold text-[#202B27]">
-                      ₹{rest.totalSales.toLocaleString('en-IN')}
-                    </td>
-
                     <td className="py-3 px-4 text-right font-bold text-[#21865A]">
                       ₹{rest.totalRewardsGenerated.toLocaleString('en-IN')}
                     </td>
@@ -229,10 +217,11 @@ export const MyRestaurants: React.FC = () => {
                           e.stopPropagation();
                           setSelectedRestaurant(rest);
                         }}
-                        className="p-1.5 rounded-lg text-[#1B6B50] hover:bg-[#1B6B50]/10 transition-colors"
-                        title="View Sales Details"
+                        className="p-1.5 rounded-lg text-[#78847D] hover:text-[#123C32] hover:bg-[#123C32]/10 transition-colors"
+                        title="View Restaurant Details"
+                        aria-label="Actions"
                       >
-                        <ArrowRight className="w-4 h-4" />
+                        <MoreVertical className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
@@ -243,301 +232,201 @@ export const MyRestaurants: React.FC = () => {
         </div>
       </div>
 
-      {/* ADD RESTAURANT MODAL (PRD Section 7) */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#202B27]/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl max-w-2xl w-full p-6 shadow-elevated my-8 relative">
-            <button 
-              onClick={() => setIsAddModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 text-[#78847D] hover:text-[#123C32] rounded-lg hover:bg-[#F7F5EF]"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="mb-4 pb-3 border-b border-[#E2E9E3]">
-              <h2 className="text-base font-bold text-[#123C32] flex items-center gap-2">
-                <PlusCircle className="w-5 h-5 text-[#1B6B50]" /> Submit Restaurant Referral
-              </h2>
-              <p className="text-xs text-[#78847D] mt-0.5">
-                Submit outlet details for Admin verification and automated Purity Customer ID mapping.
-              </p>
-            </div>
-
-            {formFeedback && (
-              <div className={`p-3 rounded-xl mb-4 text-xs flex items-center gap-2 ${formFeedback.type === 'success' ? 'bg-[#21865A]/10 text-[#21865A] border border-[#21865A]/30' : 'bg-[#D9534F]/10 text-[#D9534F] border border-[#D9534F]/30'}`}>
-                {formFeedback.type === 'success' ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
-                <span>{formFeedback.message}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">Restaurant Name *</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="e.g. Saffron Bistro"
-                    value={formData.restaurantName}
-                    onChange={e => setFormData({...formData, restaurantName: e.target.value})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">Restaurant Category *</label>
-                  <select 
-                    value={formData.category}
-                    onChange={e => setFormData({...formData, category: e.target.value as any})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none bg-white"
-                  >
-                    <option value="Casual Dining">Casual Dining</option>
-                    <option value="Fine Dining">Fine Dining</option>
-                    <option value="Cafe">Cafe</option>
-                    <option value="QSR">QSR (Quick Service Restaurant)</option>
-                    <option value="Hotel">Hotel & Banquet</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">Owner Name *</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="e.g. Ramesh Patel"
-                    value={formData.ownerName}
-                    onChange={e => setFormData({...formData, ownerName: e.target.value})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">Contact Person *</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="e.g. Manoj Sharma (Manager)"
-                    value={formData.contactPerson}
-                    onChange={e => setFormData({...formData, contactPerson: e.target.value})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">Mobile Number (Duplicate Checked) *</label>
-                  <input 
-                    type="tel" 
-                    required 
-                    maxLength={10}
-                    placeholder="10-digit mobile number"
-                    value={formData.mobile}
-                    onChange={e => setFormData({...formData, mobile: e.target.value})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">Email Address</label>
-                  <input 
-                    type="email" 
-                    placeholder="contact@restaurant.com"
-                    value={formData.email}
-                    onChange={e => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-semibold text-[#202B27] block mb-1">Full Street Address *</label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="Plot/Shop number, Street, Landmark"
-                  value={formData.address}
-                  onChange={e => setFormData({...formData, address: e.target.value})}
-                  className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">City *</label>
-                  <input 
-                    type="text" 
-                    required 
-                    value={formData.city}
-                    onChange={e => setFormData({...formData, city: e.target.value})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">State *</label>
-                  <input 
-                    type="text" 
-                    required 
-                    value={formData.state}
-                    onChange={e => setFormData({...formData, state: e.target.value})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">PIN Code *</label>
-                  <input 
-                    type="text" 
-                    required 
-                    maxLength={6}
-                    placeholder="e.g. 560001"
-                    value={formData.pinCode}
-                    onChange={e => setFormData({...formData, pinCode: e.target.value})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">GST Number (Optional)</label>
-                  <input 
-                    type="text" 
-                    placeholder="22AAAAA0000A1Z5"
-                    value={formData.gstNumber}
-                    onChange={e => setFormData({...formData, gstNumber: e.target.value.toUpperCase()})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#202B27] block mb-1">Existing Purity Customer ID (If known)</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. PUR-BLR-0492"
-                    value={formData.existingPurityCustomerId}
-                    onChange={e => setFormData({...formData, existingPurityCustomerId: e.target.value.toUpperCase()})}
-                    className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-semibold text-[#202B27] block mb-1">Remarks / Note for Admin</label>
-                <textarea 
-                  rows={2}
-                  placeholder="Expected monthly tissue / hand wash order volume, special requirements..."
-                  value={formData.remarks}
-                  onChange={e => setFormData({...formData, remarks: e.target.value})}
-                  className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E9E3]">
-                <button 
-                  type="button" 
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="btn-secondary text-xs"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="btn-primary text-xs"
-                >
-                  Submit for Admin Verification
-                </button>
-              </div>
-
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* RESTAURANT SALES DRILL-DOWN MODAL */}
+      {/* RESTAURANT SALES DRILL-DOWN MODAL - FULLY REDESIGNED PRODUCT BREAKDOWN */}
       {selectedRestaurant && (
-        <div className="fixed inset-0 z-50 bg-[#202B27]/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl max-w-2xl w-full p-6 shadow-elevated my-8 relative">
-            <button 
-              onClick={() => setSelectedRestaurant(null)}
-              className="absolute top-4 right-4 p-1.5 text-[#78847D] hover:text-[#123C32] rounded-lg hover:bg-[#F7F5EF]"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-start justify-between pb-4 border-b border-[#E2E9E3]">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-bold text-[#123C32]">{selectedRestaurant.restaurantName}</h2>
-                  <Badge status={selectedRestaurant.status} size="sm" />
-                </div>
-                <p className="text-xs text-[#78847D] mt-1">
-                  Mapped ID: <span className="font-mono font-semibold text-[#123C32]">{selectedRestaurant.mappedPurityId || 'Unmapped'}</span> • Category: {selectedRestaurant.category}
-                </p>
-                <p className="text-[11px] text-[#78847D]">
-                  Location: {selectedRestaurant.address}, {selectedRestaurant.city}
-                </p>
+        <div className="fixed inset-0 z-50 bg-[#202B27]/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl max-w-3xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-elevated relative overflow-hidden">
+            
+            {/* Header */}
+            <div className="px-4 py-3.5 sm:px-6 sm:py-4 border-b border-[#E2E9E3] flex items-center justify-between bg-white shrink-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base sm:text-lg font-bold text-[#123C32]">{selectedRestaurant.restaurantName}</h2>
+                <Badge status={selectedRestaurant.status} size="sm" />
               </div>
-            </div>
-
-            {/* Metrics */}
-            <div className="grid grid-cols-3 gap-3 my-4">
-              <div className="bg-[#F7F5EF] p-3 rounded-xl border border-[#E2E9E3] text-center">
-                <span className="text-[10px] text-[#78847D] uppercase font-bold tracking-wider">Monthly Sales</span>
-                <span className="text-base font-bold text-[#123C32] block mt-1">
-                  ₹{selectedRestaurant.monthlySales.toLocaleString('en-IN')}
-                </span>
-              </div>
-              <div className="bg-[#F7F5EF] p-3 rounded-xl border border-[#E2E9E3] text-center">
-                <span className="text-[10px] text-[#78847D] uppercase font-bold tracking-wider">Total Lifetime Sales</span>
-                <span className="text-base font-bold text-[#123C32] block mt-1">
-                  ₹{selectedRestaurant.totalSales.toLocaleString('en-IN')}
-                </span>
-              </div>
-              <div className="bg-[#D5AE62]/15 p-3 rounded-xl border border-[#D5AE62]/40 text-center">
-                <span className="text-[10px] text-[#123C32] uppercase font-bold tracking-wider">Earned Rewards</span>
-                <span className="text-base font-bold text-[#123C32] block mt-1">
-                  ₹{selectedRestaurant.totalRewardsGenerated.toLocaleString('en-IN')}
-                </span>
-              </div>
-            </div>
-
-            {/* Synced Sales Breakdown */}
-            <div>
-              <h3 className="text-xs font-bold text-[#123C32] mb-2 flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4 text-[#1B6B50]" /> Synchronized Sales Orders
-              </h3>
-
-              {restaurantSales.length === 0 ? (
-                <div className="p-4 bg-[#F7F5EF] rounded-xl text-center text-xs text-[#78847D]">
-                  No sales orders synchronized yet from Purity Website for this restaurant.
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                  {restaurantSales.map(tx => (
-                    <div key={tx.id} className="p-3 bg-[#F7F5EF] rounded-xl border border-[#E2E9E3] text-xs">
-                      <div className="flex items-center justify-between font-semibold pb-1.5 border-b border-[#E2E9E3]">
-                        <span className="font-mono text-[#123C32]">{tx.id} ({tx.date})</span>
-                        <span className="text-[#21865A] font-bold">₹{tx.amount.toLocaleString('en-IN')} (Reward: ₹{tx.rewardAmount})</span>
-                      </div>
-                      <div className="mt-2 space-y-1 text-[11px] text-[#78847D]">
-                        {tx.items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between">
-                            <span>{item.productName} ({item.unitsSold} units)</span>
-                            <span className="font-medium text-[#202B27]">₹{item.totalAmount.toLocaleString('en-IN')}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mt-5 pt-3 border-t border-[#E2E9E3] text-right">
               <button 
                 onClick={() => setSelectedRestaurant(null)}
-                className="btn-secondary text-xs"
+                className="p-1.5 text-[#78847D] hover:text-[#123C32] rounded-lg hover:bg-[#F7F5EF] transition-colors shrink-0 cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="p-4 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4 text-xs">
+              
+              {/* Financial Metrics */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                <div className="bg-[#F7F5EF] p-3 rounded-xl border border-[#E2E9E3] text-center">
+                  <span className="text-[10px] text-[#78847D] uppercase font-bold tracking-wider">Monthly Sales</span>
+                  <span className="text-base sm:text-lg font-black text-[#123C32] block mt-1">
+                    ₹{selectedRestaurant.monthlySales.toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="bg-[#D5AE62]/15 p-3 rounded-xl border border-[#D5AE62]/40 text-center">
+                  <span className="text-[10px] text-[#123C32] uppercase font-bold tracking-wider">Earned Rewards (10%)</span>
+                  <span className="text-base sm:text-lg font-black text-[#123C32] block mt-1">
+                    ₹{selectedRestaurant.totalRewardsGenerated.toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="col-span-2 sm:col-span-1 bg-[#123C32]/5 p-3 rounded-xl border border-[#123C32]/20 text-center">
+                  <span className="text-[10px] text-[#123C32] uppercase font-bold tracking-wider">Total Units Purchased</span>
+                  <span className="text-base sm:text-lg font-black text-[#123C32] block mt-1">
+                    {totalUnitsPurchased} <span className="text-xs font-semibold text-[#78847D]">Units</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Core 3 Product Highlights: Hand Wash, Foam Wash, HRT Roll in Same Horizontal Line */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                
+                {/* 1. Hand Wash */}
+                <div className="purity-card p-2 sm:p-3.5 bg-gradient-to-br from-[#FFFFFF] to-[#F7F5EF] border-2 border-[#1B6B50]/30 hover:border-[#1B6B50] transition-all shadow-xs flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between text-[#78847D] mb-1">
+                      <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-[#1B6B50]/10 text-[#1B6B50] truncate">
+                        🧴 Hand Wash
+                      </span>
+                      <span className="hidden sm:inline text-xs font-mono font-semibold text-[#78847D]">5L Cans</span>
+                    </div>
+                    <div className="text-lg sm:text-2xl lg:text-3xl font-black text-[#123C32] tracking-tight mt-1">
+                      {handWashUnits} <span className="text-[10px] sm:text-xs font-bold text-[#78847D]">Cans</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 sm:mt-3 pt-1.5 sm:pt-2 border-t border-[#E2E9E3] flex flex-col sm:flex-row sm:items-center sm:justify-between text-[10px] sm:text-[11px]">
+                    <span className="text-[#78847D] text-[9px] sm:text-[11px]">Total Purchased</span>
+                    <span className="font-bold text-[#1B6B50]">₹{(handWashUnits * 600).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+
+                {/* 2. Foam Wash */}
+                <div className="purity-card p-2 sm:p-3.5 bg-gradient-to-br from-[#FFFFFF] to-[#F7F5EF] border-2 border-[#D5AE62]/50 hover:border-[#D5AE62] transition-all shadow-xs flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between text-[#78847D] mb-1">
+                      <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-[#D5AE62]/25 text-[#123C32] truncate">
+                        🧼 Foam Wash
+                      </span>
+                      <span className="hidden sm:inline text-xs font-mono font-semibold text-[#78847D]">5L Cans</span>
+                    </div>
+                    <div className="text-lg sm:text-2xl lg:text-3xl font-black text-[#123C32] tracking-tight mt-1">
+                      {foamWashUnits} <span className="text-[10px] sm:text-xs font-bold text-[#78847D]">Cans</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 sm:mt-3 pt-1.5 sm:pt-2 border-t border-[#E2E9E3] flex flex-col sm:flex-row sm:items-center sm:justify-between text-[10px] sm:text-[11px]">
+                    <span className="text-[#78847D] text-[9px] sm:text-[11px]">Total Purchased</span>
+                    <span className="font-bold text-[#1B6B50]">₹{(foamWashUnits * 700).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+
+                {/* 3. HRT Roll */}
+                <div className="purity-card p-2 sm:p-3.5 bg-gradient-to-br from-[#FFFFFF] to-[#F7F5EF] border-2 border-[#21865A]/40 hover:border-[#21865A] transition-all shadow-xs flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between text-[#78847D] mb-1">
+                      <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-[#21865A]/15 text-[#21865A] truncate">
+                        🧻 HRT Roll
+                      </span>
+                      <span className="hidden sm:inline text-xs font-mono font-semibold text-[#78847D]">Kitchen Towels</span>
+                    </div>
+                    <div className="text-lg sm:text-2xl lg:text-3xl font-black text-[#123C32] tracking-tight mt-1">
+                      {hrtRollUnits} <span className="text-[10px] sm:text-xs font-bold text-[#78847D]">Rolls</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 sm:mt-3 pt-1.5 sm:pt-2 border-t border-[#E2E9E3] flex flex-col sm:flex-row sm:items-center sm:justify-between text-[10px] sm:text-[11px]">
+                    <span className="text-[#78847D] text-[9px] sm:text-[11px]">Total Purchased</span>
+                    <span className="font-bold text-[#1B6B50]">₹{(hrtRollUnits * 240).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Product Purchase Breakdown */}
+              <div className="pt-2">
+                <div className="flex items-center gap-2 mb-3 border-b border-[#E2E9E3] pb-2">
+                  <Package className="w-4 h-4 text-[#1B6B50]" />
+                  <h3 className="text-xs font-bold text-[#123C32]">Product Purchase Summary</h3>
+                  <span className="text-[10px] bg-[#E2E9E3] text-[#123C32] px-2 py-0.5 rounded-full font-bold">
+                    {productSummary.length} Products
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {productSummary.length === 0 ? (
+                    <div className="p-4 bg-[#F7F5EF] rounded-xl text-center text-xs text-[#78847D]">
+                      No product purchases found.
+                    </div>
+                  ) : (
+                    <div className="border border-[#E2E9E3] rounded-xl overflow-hidden bg-white shadow-2xs">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead>
+                            <tr className="bg-[#123C32]/5 border-b border-[#E2E9E3] text-[#78847D] text-[10px] font-bold uppercase tracking-wider">
+                              <th className="py-2.5 px-3">Product Name</th>
+                              <th className="py-2.5 px-3 text-center">Category</th>
+                              <th className="py-2.5 px-3 text-right">Units Purchased</th>
+                              <th className="py-2.5 px-3 text-right">Unit Price</th>
+                              <th className="py-2.5 px-3 text-right">Total Value</th>
+                              <th className="py-2.5 px-3 text-right">Reward (10%)</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#E2E9E3]">
+                            {productSummary.map((prod, idx) => {
+                              const isKeyProduct = 
+                                prod.productName.toLowerCase().includes('hand wash') || 
+                                prod.productName.toLowerCase().includes('foam') || 
+                                prod.productName.toLowerCase().includes('hrt') ||
+                                prod.productName.toLowerCase().includes('ht roll');
+
+                              return (
+                                <tr key={idx} className={`hover:bg-[#F7F5EF] transition-colors ${isKeyProduct ? 'bg-[#F7F5EF]/30 font-medium' : ''}`}>
+                                  <td className="py-2.5 px-3">
+                                    <div className="font-semibold text-[#123C32] flex items-center gap-1.5">
+                                      {prod.productName.toLowerCase().includes('foam') ? '🧼' :
+                                       prod.productName.toLowerCase().includes('hand wash') ? '🧴' :
+                                       prod.productName.toLowerCase().includes('roll') ? '🧻' : '📦'}
+                                      <span>{prod.productName}</span>
+                                    </div>
+                                    <span className="text-[10px] text-[#78847D] block">Last ordered: {prod.lastDate}</span>
+                                  </td>
+                                  <td className="py-2.5 px-3 text-center">
+                                    <span className="inline-block text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#E2E9E3]/70 text-[#202B27]">
+                                      {prod.category}
+                                    </span>
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right">
+                                    <span className="inline-block font-black text-xs px-2.5 py-1 rounded-lg bg-[#123C32] text-white">
+                                      {prod.totalUnits} {prod.productName.toLowerCase().includes('roll') ? 'rolls' : prod.productName.toLowerCase().includes('wash') ? 'cans' : 'units'}
+                                    </span>
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right font-mono text-[#78847D]">
+                                    ₹{prod.unitPrice}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#123C32]">
+                                    ₹{prod.totalAmount.toLocaleString('en-IN')}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-right font-mono font-bold text-[#21865A]">
+                                    +₹{prod.rewardEarned.toLocaleString('en-IN')}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 py-3 sm:px-6 sm:py-3.5 bg-[#F7F5EF] border-t border-[#E2E9E3] flex items-center justify-between shrink-0">
+              <span className="text-[11px] text-[#78847D] hidden sm:inline">
+                Live synchronization with Purity outlet procurement ledger
+              </span>
+              <button 
+                onClick={() => setSelectedRestaurant(null)}
+                className="btn-secondary text-xs w-full sm:w-auto px-4 py-2 cursor-pointer"
               >
                 Close
               </button>

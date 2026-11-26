@@ -31,12 +31,6 @@ export const MyReferrals: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
-      {/* Top Header */}
-      <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
-        <Users className="w-6 h-6 text-[#1B6B50]" /> Manager Referral Network
-      </h1>
-
       {/* Unique Referral Code Card (PRD Section 4 & Section 11) */}
       <div className="bg-gradient-to-br from-[#123C32] to-[#1B6B50] text-white rounded-2xl p-4 sm:p-6 shadow-elevated border border-[#1B6B50] relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-[#D5AE62]/20 to-transparent pointer-events-none" />

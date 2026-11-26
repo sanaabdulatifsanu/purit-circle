@@ -1,23 +1,8 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
-  LayoutDashboard, 
-  Store, 
-  TrendingUp, 
-  Coins, 
-  Wallet, 
-  Gift, 
-  Users, 
-  Bell, 
-  User, 
   ShieldCheck, 
-  Layers, 
-  Sliders, 
-  FileCheck2, 
-  FileSpreadsheet, 
-  Settings, 
   LogOut,
-  Sparkles,
   ChevronRight,
   CheckCircle2
 } from 'lucide-react';
@@ -39,23 +24,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     currentManager 
   } = useApp();
 
-  const managerMenuItems: { id: ManagerSubView; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'restaurants', label: 'My Restaurants', icon: Store },
-    { id: 'wallet', label: 'Rewards Wallet', icon: Wallet },
-    { id: 'claim', label: 'Claim Rewards', icon: Gift },
-    { id: 'referrals', label: 'My Referrals', icon: Users },
-    { id: 'profile', label: 'Profile', icon: User },
+  const managerMenuItems: { id: ManagerSubView; label: string }[] = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'restaurants', label: 'My Restaurants' },
+    { id: 'wallet', label: 'Rewards Wallet' },
+    { id: 'claim', label: 'Claim Rewards' },
+    { id: 'referrals', label: 'My Referrals' },
+    { id: 'profile', label: 'Profile' },
   ];
 
-  const adminMenuItems: { id: AdminSubView; label: string; icon: React.FC<{ className?: string }> }[] = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'managers', label: 'Managers', icon: Users },
-    { id: 'restaurants', label: 'Restaurants', icon: Store },
-    { id: 'rewards-claims', label: 'Rewards & Claims', icon: Gift },
-    { id: 'payouts-reports', label: 'Payouts & Reports', icon: FileCheck2 },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'settings', label: 'Settings', icon: Settings },
+  const adminMenuItems: { id: AdminSubView; label: string }[] = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'managers', label: 'Managers' },
+    { id: 'restaurants', label: 'Restaurants' },
+    { id: 'rewards-claims', label: 'Rewards & Claims' },
+    { id: 'payouts-reports', label: 'Payouts & Reports' },
+    { id: 'notifications', label: 'Notifications' },
+    { id: 'settings', label: 'Settings' },
   ];
 
   return (
@@ -90,22 +75,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        {/* Manager ID Card / Admin Badge Banner */}
-        <div className="px-4 py-3 mx-4 my-3 rounded-xl bg-[#1B6B50]/40 border border-[#1B6B50]">
-          {role === 'manager' ? (
-            <div>
-              <div className="flex items-center justify-between text-xs text-[#E2E9E3]/80">
-                <span>Manager Code:</span>
-                <span className="font-mono font-bold text-[#D5AE62] tracking-wider text-sm">{currentManager.referralCode}</span>
-              </div>
-              <div className="text-xs font-semibold text-white mt-1 truncate">
-                {currentManager.name}
-              </div>
-              <div className="text-[10px] text-[#E2E9E3]/70 truncate">
-                Referred by: {currentManager.referredByCode || '1001'}
-              </div>
-            </div>
-          ) : (
+        {/* Admin Badge Banner (Admin only) */}
+        {role === 'admin' && (
+          <div className="px-4 py-3 mx-4 my-3 rounded-xl bg-[#1B6B50]/40 border border-[#1B6B50]">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-[#D5AE62]" />
               <div>
@@ -113,14 +85,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <span className="text-[10px] text-[#E2E9E3]/70">Full System Governance</span>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Navigation Items */}
         <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
           {role === 'manager' ? (
             managerMenuItems.map(item => {
-              const Icon = item.icon;
               const isActive = managerSubView === item.id;
               return (
                 <button
@@ -136,22 +107,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       : 'text-[#E2E9E3]/80 hover:bg-[#1B6B50]/40 hover:text-white'}
                   `}
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#D5AE62]' : 'text-[#E2E9E3]/70'}`} />
-                    <span>{item.label}</span>
+                  <span className="tracking-wide">{item.label}</span>
+                  <div className="flex items-center gap-2">
+                    {item.id === 'wallet' && (
+                      <span className="text-[10px] bg-[#D5AE62] text-[#123C32] px-1.5 py-0.5 rounded font-bold">
+                        ₹{currentManager.walletBalance.toLocaleString('en-IN')}
+                      </span>
+                    )}
+                    {isActive && <ChevronRight className="w-3.5 h-3.5 text-[#D5AE62]" />}
                   </div>
-                  {item.id === 'wallet' && (
-                    <span className="text-[10px] bg-[#D5AE62] text-[#123C32] px-1.5 py-0.5 rounded font-bold">
-                      ₹{currentManager.walletBalance.toLocaleString('en-IN')}
-                    </span>
-                  )}
-                  {isActive && <ChevronRight className="w-3.5 h-3.5 text-[#D5AE62]" />}
                 </button>
               );
             })
           ) : (
             adminMenuItems.map(item => {
-              const Icon = item.icon;
               const isActive = 
                 (item.id === 'managers' && (adminSubView === 'managers' || adminSubView === 'referrals')) ||
                 (item.id === 'rewards-claims' && (adminSubView === 'rewards-claims' || adminSubView === 'reward-config' || adminSubView === 'referral-rewards' || adminSubView === 'wallet' || adminSubView === 'claims')) ||
@@ -171,10 +140,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       : 'text-[#E2E9E3]/80 hover:bg-[#1B6B50]/40 hover:text-white'}
                   `}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#D5AE62]' : 'text-[#E2E9E3]/70'}`} />
-                    <span>{item.label}</span>
-                  </div>
+                  <span className="tracking-wide">{item.label}</span>
                   {isActive && <ChevronRight className="w-3.5 h-3.5 text-[#D5AE62]" />}
                 </button>
               );

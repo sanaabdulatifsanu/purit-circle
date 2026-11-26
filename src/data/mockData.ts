@@ -256,13 +256,14 @@ export const SALES_TRANSACTIONS: SalesTransaction[] = [
     managerId: 'mgr_001',
     managerName: 'Rajesh Kumar',
     date: '2026-11-22',
-    amount: 18400,
-    rewardAmount: 1840,
+    amount: 32600,
+    rewardAmount: 3260,
     status: 'synced',
     items: [
-      { productId: 'P01', productName: 'Purity Tissue Roll (2-Ply, 100 Pulls)', category: 'Paper Hygiene', unitsSold: 40, unitPrice: 160, totalAmount: 6400 },
-      { productId: 'P02', productName: 'Purity HT Roll (Premium Kitchen Towel)', category: 'Paper Hygiene', unitsSold: 25, unitPrice: 240, totalAmount: 6000 },
-      { productId: 'P03', productName: 'Purity Antibacterial Hand Wash (5L Can)', category: 'Liquids & Soaps', unitsSold: 10, unitPrice: 600, totalAmount: 6000 },
+      { productId: 'P03', productName: 'Purity Antibacterial Hand Wash (5L Can)', category: 'Hand Wash', unitsSold: 15, unitPrice: 600, totalAmount: 9000 },
+      { productId: 'P07', productName: 'Purity Luxury Foam Hand Wash (5L Can)', category: 'Foam Wash', unitsSold: 10, unitPrice: 700, totalAmount: 7000 },
+      { productId: 'P02', productName: 'Purity HRT Roll (Heavy Duty Kitchen Towel)', category: 'HRT Rolls', unitsSold: 35, unitPrice: 240, totalAmount: 8400 },
+      { productId: 'P01', productName: 'Purity Tissue Roll (2-Ply, 100 Pulls)', category: 'Tissue Rolls', unitsSold: 50, unitPrice: 160, totalAmount: 8200 },
     ]
   },
   {
@@ -276,9 +277,10 @@ export const SALES_TRANSACTIONS: SalesTransaction[] = [
     rewardAmount: 1420,
     status: 'synced',
     items: [
-      { productId: 'P01', productName: 'Purity Tissue Roll (2-Ply, 100 Pulls)', category: 'Paper Hygiene', unitsSold: 50, unitPrice: 160, totalAmount: 8000 },
-      { productId: 'P04', productName: 'Purity Heavy Duty Degreaser (5L)', category: 'Kitchen Cleaning', unitsSold: 6, unitPrice: 700, totalAmount: 4200 },
-      { productId: 'P05', productName: 'Tabletop Dispenser Standard Black', category: 'Hardware', unitsSold: 4, unitPrice: 500, totalAmount: 2000 },
+      { productId: 'P03', productName: 'Purity Antibacterial Hand Wash (5L Can)', category: 'Hand Wash', unitsSold: 8, unitPrice: 600, totalAmount: 4800 },
+      { productId: 'P07', productName: 'Purity Luxury Foam Hand Wash (5L Can)', category: 'Foam Wash', unitsSold: 6, unitPrice: 700, totalAmount: 4200 },
+      { productId: 'P02', productName: 'Purity HRT Roll (Heavy Duty Kitchen Towel)', category: 'HRT Rolls', unitsSold: 20, unitPrice: 240, totalAmount: 4800 },
+      { productId: 'P01', productName: 'Purity Tissue Roll (2-Ply, 100 Pulls)', category: 'Tissue Rolls', unitsSold: 30, unitPrice: 160, totalAmount: 4800 },
     ]
   },
   {
@@ -292,8 +294,9 @@ export const SALES_TRANSACTIONS: SalesTransaction[] = [
     rewardAmount: 1680,
     status: 'synced',
     items: [
-      { productId: 'P02', productName: 'Purity HT Roll (Premium Kitchen Towel)', category: 'Paper Hygiene', unitsSold: 30, unitPrice: 240, totalAmount: 7200 },
-      { productId: 'P03', productName: 'Purity Antibacterial Hand Wash (5L Can)', category: 'Liquids & Soaps', unitsSold: 16, unitPrice: 600, totalAmount: 9600 },
+      { productId: 'P03', productName: 'Purity Antibacterial Hand Wash (5L Can)', category: 'Hand Wash', unitsSold: 12, unitPrice: 600, totalAmount: 7200 },
+      { productId: 'P07', productName: 'Purity Luxury Foam Hand Wash (5L Can)', category: 'Foam Wash', unitsSold: 8, unitPrice: 700, totalAmount: 5600 },
+      { productId: 'P02', productName: 'Purity HRT Roll (Heavy Duty Kitchen Towel)', category: 'HRT Rolls', unitsSold: 25, unitPrice: 240, totalAmount: 6000 },
     ]
   },
   {
@@ -303,14 +306,16 @@ export const SALES_TRANSACTIONS: SalesTransaction[] = [
     managerId: 'mgr_001',
     managerName: 'Rajesh Kumar',
     date: '2026-11-08',
-    amount: 22500,
-    rewardAmount: 2250,
+    amount: 45900,
+    rewardAmount: 4590,
     status: 'synced',
     items: [
-      { productId: 'P01', productName: 'Purity Tissue Roll (2-Ply, 100 Pulls)', category: 'Paper Hygiene', unitsSold: 60, unitPrice: 160, totalAmount: 9600 },
-      { productId: 'P02', productName: 'Purity HT Roll (Premium Kitchen Towel)', category: 'Paper Hygiene', unitsSold: 35, unitPrice: 240, totalAmount: 8400 },
+      { productId: 'P03', productName: 'Purity Antibacterial Hand Wash (5L Can)', category: 'Hand Wash', unitsSold: 20, unitPrice: 600, totalAmount: 12000 },
+      { productId: 'P07', productName: 'Purity Luxury Foam Hand Wash (5L Can)', category: 'Foam Wash', unitsSold: 12, unitPrice: 700, totalAmount: 8400 },
+      { productId: 'P02', productName: 'Purity HRT Roll (Heavy Duty Kitchen Towel)', category: 'HRT Rolls', unitsSold: 45, unitPrice: 240, totalAmount: 10800 },
+      { productId: 'P01', productName: 'Purity Tissue Roll (2-Ply, 100 Pulls)', category: 'Tissue Rolls', unitsSold: 60, unitPrice: 160, totalAmount: 9600 },
       { productId: 'P04', productName: 'Purity Heavy Duty Degreaser (5L)', category: 'Kitchen Cleaning', unitsSold: 5, unitPrice: 700, totalAmount: 3500 },
-      { productId: 'P06', productName: 'Purity Surface Sanitizer (5L)', category: 'Sanitization', unitsSold: 2, unitPrice: 500, totalAmount: 1000 },
+      { productId: 'P06', productName: 'Purity Surface Sanitizer (5L)', category: 'Sanitization', unitsSold: 2, unitPrice: 800, totalAmount: 1600 },
     ]
   },
   {
@@ -510,6 +515,20 @@ export const REWARD_ITEMS: RewardItem[] = [
 ];
 
 export const REWARD_CLAIMS: RewardClaim[] = [
+  {
+    id: 'CLM-2026-105',
+    managerId: 'mgr_001',
+    managerName: 'Rajesh Kumar',
+    managerMobile: '9876543210',
+    rewardId: 'rew_cash_10k',
+    rewardTitle: '₹10,000 Direct Bank Cash Transfer',
+    rewardCategory: 'cash',
+    requiredAmount: 10000,
+    claimedDate: '2026-11-26',
+    status: 'pending',
+    payoutReference: 'Verification in progress',
+    notes: 'Selected redemption request - Direct bank transfer to registered account',
+  },
   {
     id: 'CLM-2026-104',
     managerId: 'mgr_001',
