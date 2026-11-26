@@ -46,8 +46,10 @@ const MainLayout: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
-        {/* Sticky Top Header on Every Screen */}
-        <Header onToggleSidebar={() => setSidebarOpen(true)} />
+        {/* Top Header - Omitted across all Admin routes */}
+        {role !== 'admin' && (
+          <Header onToggleSidebar={() => setSidebarOpen(true)} />
+        )}
 
         {/* Dynamic Page Content */}
         <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
@@ -65,8 +67,12 @@ const MainLayout: React.FC = () => {
             </>
           ) : (
             <>
-              {adminSubView === 'overview' && <AdminOverview />}
-              {(adminSubView === 'managers' || adminSubView === 'referrals') && <AdminManagersView />}
+              {adminSubView === 'overview' && (
+                <AdminOverview onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+              )}
+              {(adminSubView === 'managers' || adminSubView === 'referrals') && (
+                <AdminManagersView onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+              )}
               {adminSubView === 'restaurants' && <AdminReferredRestaurants />}
               {['rewards-claims', 'reward-config', 'referral-rewards', 'wallet', 'claims'].includes(adminSubView) && (
                 <AdminRewardsAndClaims />
