@@ -15,8 +15,11 @@ import {
 import { Badge } from '../common/Badge';
 
 export const MyReferrals: React.FC = () => {
-  const { currentManager, allManagers, restaurants } = useApp();
+  const { currentManager, allManagers, restaurants, directReferralBonus, directReferralThreshold } = useApp();
   const [copied, setCopied] = useState(false);
+
+  const formattedBonus = `₹${directReferralBonus.toLocaleString('en-IN')}`;
+  const formattedThreshold = `₹${directReferralThreshold.toLocaleString('en-IN')}`;
 
   // Managers referred directly by current manager
   const myReferredManagers = allManagers.filter(
@@ -39,7 +42,7 @@ export const MyReferrals: React.FC = () => {
             <Users className="w-6 h-6 text-[#1B6B50]" /> Manager Referral Network
           </h1>
           <p className="text-xs text-[#78847D] mt-1">
-            Grow your manager circle and earn ₹2,000 direct bonuses for each manager's qualifying restaurant sales.
+            Grow your manager circle and earn {formattedBonus} direct bonuses for each manager's qualifying restaurant sales.
           </p>
         </div>
 
@@ -64,7 +67,7 @@ export const MyReferrals: React.FC = () => {
               Your Exclusive Referral Code
             </h2>
             <p className="text-xs text-[#E2E9E3]/90 leading-relaxed">
-              Every new manager is required to register with a valid referral code. Share your code to onboard colleagues and earn a one-time ₹2,000 bonus on their first qualifying restaurant order.
+              Every new manager is required to register with a valid referral code. Share your code to onboard colleagues and earn a one-time {formattedBonus} bonus on their first qualifying restaurant order.
             </p>
           </div>
 
@@ -113,9 +116,9 @@ export const MyReferrals: React.FC = () => {
           <div className="w-8 h-8 rounded-lg bg-[#D5AE62] flex items-center justify-center text-[#123C32] mb-3 shadow-xs">
             <span className="font-bold text-sm">3</span>
           </div>
-          <h4 className="text-xs font-bold text-[#123C32]">₹2,000 Credited to You</h4>
+          <h4 className="text-xs font-bold text-[#123C32]">{formattedBonus} Credited to You</h4>
           <p className="text-xs text-[#78847D] mt-1 leading-relaxed">
-            One-time direct ₹2,000 reward credited straight to your wallet. (No multi-level cascade on sales).
+            One-time direct {formattedBonus} reward credited straight to your wallet. (No multi-level cascade on sales).
           </p>
         </div>
       </div>
@@ -139,7 +142,7 @@ export const MyReferrals: React.FC = () => {
                 <th className="py-3 px-4">Joined Date</th>
                 <th className="py-3 px-4">Referred Restaurants</th>
                 <th className="py-3 px-4">Total Sales</th>
-                <th className="py-3 px-4 text-center">₹2,000 Referral Bonus Status</th>
+                <th className="py-3 px-4 text-center">{formattedBonus} Referral Bonus Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E9E3]">
@@ -151,7 +154,7 @@ export const MyReferrals: React.FC = () => {
                 </tr>
               ) : (
                 myReferredManagers.map(mgr => {
-                  const hasQualifying = mgr.totalSalesGenerated >= 25000;
+                  const hasQualifying = mgr.totalSalesGenerated >= directReferralThreshold;
                   return (
                     <tr key={mgr.id} className="hover:bg-[#F7F5EF] transition-colors">
                       <td className="py-3 px-4">
@@ -178,7 +181,7 @@ export const MyReferrals: React.FC = () => {
                       <td className="py-3 px-4 text-center">
                         {hasQualifying ? (
                           <span className="inline-flex items-center gap-1 bg-[#21865A]/10 text-[#21865A] border border-[#21865A]/30 px-2.5 py-0.5 rounded-full font-bold text-[11px]">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> ₹2,000 Credited
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {formattedBonus} Credited
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 bg-[#D99A32]/10 text-[#D99A32] border border-[#D99A32]/30 px-2.5 py-0.5 rounded-full font-medium text-[11px]">

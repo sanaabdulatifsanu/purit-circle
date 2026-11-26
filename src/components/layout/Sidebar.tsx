@@ -13,7 +13,6 @@ import {
   ShieldCheck, 
   Layers, 
   Sliders, 
-  FileCheck2, 
   FileSpreadsheet, 
   Settings, 
   LogOut,
@@ -36,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     setManagerSubView, 
     adminSubView, 
     setAdminSubView,
+    setClaimsViewMode,
     currentManager 
   } = useApp();
 
@@ -53,7 +53,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { id: 'managers', label: 'Managers', icon: Users },
     { id: 'restaurants', label: 'Restaurants', icon: Store },
     { id: 'rewards-claims', label: 'Rewards & Claims', icon: Gift },
-    { id: 'payouts-reports', label: 'Payouts & Reports', icon: FileCheck2 },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -155,13 +154,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               const isActive = 
                 (item.id === 'managers' && (adminSubView === 'managers' || adminSubView === 'referrals')) ||
                 (item.id === 'rewards-claims' && (adminSubView === 'rewards-claims' || adminSubView === 'reward-config' || adminSubView === 'referral-rewards' || adminSubView === 'wallet' || adminSubView === 'claims')) ||
-                (item.id === 'payouts-reports' && (adminSubView === 'payouts-reports' || adminSubView === 'payouts' || adminSubView === 'reports')) ||
                 adminSubView === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => {
                     setAdminSubView(item.id);
+                    if (item.id === 'rewards-claims') {
+                      setClaimsViewMode('table');
+                    }
                     onClose();
                   }}
                   className={`

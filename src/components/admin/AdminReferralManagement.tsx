@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Layers, Users, GitBranch, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const AdminReferralManagement: React.FC = () => {
-  const { allManagers } = useApp();
+  const { allManagers, directReferralBonus } = useApp();
 
   return (
     <div className="space-y-6">
@@ -65,7 +65,7 @@ export const AdminReferralManagement: React.FC = () => {
                       <span className="text-[10px] text-[#78847D] block">Referred by Rajesh Kumar (A1001)</span>
                     </div>
                     <span className="text-[11px] bg-[#21865A]/10 text-[#21865A] px-2 py-0.5 rounded font-semibold">
-                      ₹2,000 Bonus Paid to A1001
+                      ₹{directReferralBonus.toLocaleString('en-IN')} Bonus Paid to A1001
                     </span>
                   </div>
 

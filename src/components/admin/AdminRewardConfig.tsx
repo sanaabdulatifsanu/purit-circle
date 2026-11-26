@@ -4,16 +4,22 @@ import { Sliders, PlusCircle, Check, Percent, Layers, Calendar } from 'lucide-re
 import { RewardRuleConfig } from '../../types';
 
 export const AdminRewardConfig: React.FC = () => {
-  const { rewardRules } = useApp();
+  const { 
+    rewardRules, 
+    directReferralBonus, 
+    directReferralThreshold, 
+    updateDirectReferralSettings 
+  } = useApp();
   const [rules, setRules] = useState<RewardRuleConfig[]>(rewardRules);
   const [isSaved, setIsSaved] = useState(false);
 
   // Edit current standard rate
   const [defaultPercentage, setDefaultPercentage] = useState(10.0);
-  const [minQualifyingSales, setMinQualifyingSales] = useState(25000);
+  const [minQualifyingSales, setMinQualifyingSales] = useState(directReferralThreshold);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    updateDirectReferralSettings(directReferralBonus, minQualifyingSales);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
   };
@@ -73,7 +79,7 @@ export const AdminRewardConfig: React.FC = () => {
 
           <div>
             <label className="font-semibold text-[#202B27] block mb-1">
-              Qualifying Sales Threshold for ₹2,000 Bonus:
+              Qualifying Sales Threshold for ₹{directReferralBonus.toLocaleString('en-IN')} Bonus:
             </label>
             <div className="relative">
               <input 

@@ -42,6 +42,7 @@ export interface Manager {
   totalSalesGenerated: number;
   walletBalance: number;
   totalRewardsEarned: number;
+  customCommissionRate?: number;
 }
 
 export type RestaurantStatus = 'pending' | 'approved' | 'rejected' | 'active' | 'inactive';
@@ -50,6 +51,7 @@ export interface RestaurantReferral {
   id: string;
   managerId: string;
   managerName: string;
+  managerReferralCode?: string; // e.g. A1001, 1001
   restaurantName: string;
   ownerName: string;
   contactPerson: string;
@@ -135,6 +137,8 @@ export interface RewardClaim {
   payoutReference?: string;
   notes?: string;
   rejectionReason?: string;
+  preRedemptionBalance?: number;
+  postRedemptionBalance?: number;
 }
 
 export interface NotificationItem {
@@ -147,6 +151,23 @@ export interface NotificationItem {
   timestamp: string;
   isRead: boolean;
   linkAction?: string;
+  restaurantId?: string;
+  verificationData?: {
+    restaurantName: string;
+    ownerName: string;
+    contactPerson?: string;
+    phone: string;
+    email?: string;
+    address?: string;
+    city: string;
+    state?: string;
+    pinCode?: string;
+    gstNumber?: string;
+    category: string;
+    remarks?: string;
+    managerName: string;
+    managerReferralCode: string;
+  };
 }
 
 export interface RewardRuleConfig {

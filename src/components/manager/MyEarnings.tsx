@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 export const MyEarnings: React.FC = () => {
-  const { currentManager, walletTransactions } = useApp();
+  const { currentManager, walletTransactions, directReferralBonus } = useApp();
 
   // Split earnings by source
   const salesRewardTotal = walletTransactions
@@ -33,7 +33,7 @@ export const MyEarnings: React.FC = () => {
             <Coins className="w-6 h-6 text-[#D5AE62]" /> My Earnings Breakdown
           </h1>
           <p className="text-xs text-[#78847D] mt-1">
-            Transparent breakdown of Sales-Based Commissions and ₹2,000 Direct Referral Rewards.
+            Transparent breakdown of Sales-Based Commissions and ₹{directReferralBonus.toLocaleString('en-IN')} Direct Referral Rewards.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export const MyEarnings: React.FC = () => {
           </div>
         </div>
 
-        {/* Stream 2: Direct Referral Rewards (₹2,000) */}
+        {/* Stream 2: Direct Referral Rewards */}
         <div className="purity-card p-5 border-l-4 border-l-[#D5AE62]">
           <div className="flex items-center justify-between pb-3 border-b border-[#E2E9E3]">
             <div className="flex items-center gap-2.5">
@@ -95,12 +95,12 @@ export const MyEarnings: React.FC = () => {
                 <Sparkles className="w-4 h-4 text-[#D5AE62]" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#123C32]">₹2,000 Direct Referral Rewards</h3>
+                <h3 className="text-sm font-bold text-[#123C32]">₹{directReferralBonus.toLocaleString('en-IN')} Direct Referral Rewards</h3>
                 <span className="text-[11px] text-[#78847D]">Manager referral incentive</span>
               </div>
             </div>
             <span className="text-base font-bold text-[#D5AE62]">
-              ₹{(referralBonusTotal + 2000).toLocaleString('en-IN')}
+              ₹{(referralBonusTotal + directReferralBonus).toLocaleString('en-IN')}
             </span>
           </div>
 

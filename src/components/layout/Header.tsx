@@ -27,7 +27,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onOpenAuth }) =
     notifications, 
     markNotificationRead,
     setManagerSubView,
-    setAdminSubView 
+    setAdminSubView,
+    setClaimsViewMode 
   } = useApp();
 
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -136,21 +137,36 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onOpenAuth }) =
                   {roleNotifs.length === 0 ? (
                     <p className="text-xs text-[#78847D] text-center py-6">No new notifications</p>
                   ) : (
-                    roleNotifs.map(notif => (
-                      <div 
-                        key={notif.id}
-                        onClick={() => markNotificationRead(notif.id)}
-                        className={`p-2.5 rounded-xl transition-colors cursor-pointer text-left ${notif.isRead ? 'opacity-70 hover:bg-[#F7F5EF]' : 'bg-[#F7F5EF]/60 hover:bg-[#F7F5EF]'}`}
-                      >
-                        <div className="flex items-center justify-between text-xs">
-                          <span className={`font-semibold ${notif.type === 'success' ? 'text-[#21865A]' : notif.type === 'warning' ? 'text-[#D99A32]' : 'text-[#123C32]'}`}>
-                            {notif.title}
-                          </span>
-                          <span className="text-[10px] text-[#78847D]">{notif.timestamp}</span>
+                    roleNotifs.map(notif => {
+                      const isRewardClaimNotif =
+                        role === 'admin' &&
+                        (notif.linkAction === 'claims' ||
+                          notif.title.toLowerCase().includes('reward claim') ||
+                          notif.title.toLowerCase().includes('reward redemption'));
+
+                      return (
+                        <div 
+                          key={notif.id}
+                          onClick={() => {
+                            markNotificationRead(notif.id);
+                            setShowNotifDropdown(false);
+                            if (isRewardClaimNotif) {
+                              setClaimsViewMode('pending-view');
+                              setAdminSubView('claims');
+                            }
+                          }}
+                          className={`p-2.5 rounded-xl transition-colors cursor-pointer text-left ${notif.isRead ? 'opacity-70 hover:bg-[#F7F5EF]' : 'bg-[#F7F5EF]/60 hover:bg-[#F7F5EF]'}`}
+                        >
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={`font-semibold ${notif.type === 'success' ? 'text-[#21865A]' : notif.type === 'warning' ? 'text-[#D99A32]' : 'text-[#123C32]'}`}>
+                              {notif.title}
+                            </span>
+                            <span className="text-[10px] text-[#78847D]">{notif.timestamp}</span>
+                          </div>
+                          <p className="text-xs text-[#78847D] mt-1 line-clamp-2">{notif.message}</p>
                         </div>
-                        <p className="text-xs text-[#78847D] mt-1 line-clamp-2">{notif.message}</p>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
 

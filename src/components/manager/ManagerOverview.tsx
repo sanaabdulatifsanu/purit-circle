@@ -21,11 +21,17 @@ export const ManagerOverview: React.FC = () => {
     currentManager, 
     restaurants, 
     salesTransactions, 
-    setManagerSubView 
+    setManagerSubView,
+    directReferralBonus
   } = useApp();
 
-  // Filter manager's own restaurants
+  // Filter manager's own restaurants (active/approved prioritized first)
   const myRestaurants = restaurants.filter(r => r.managerId === currentManager.id);
+  const displayRestaurants = [...myRestaurants].sort((a, b) => {
+    if ((a.status === 'active' || a.status === 'approved') && b.status !== 'active') return -1;
+    if (a.status !== 'active' && (b.status === 'active' || b.status === 'approved')) return 1;
+    return 0;
+  });
   const activeCount = myRestaurants.filter(r => r.status === 'active').length;
   const inactiveCount = myRestaurants.filter(r => r.status === 'inactive').length;
   const pendingCount = myRestaurants.filter(r => r.status === 'pending').length;
@@ -218,10 +224,10 @@ export const ManagerOverview: React.FC = () => {
               <Sparkles className="w-3.5 h-3.5" /> Direct Referral Bonus
             </div>
             <h3 className="text-lg font-bold text-white">
-              Earn ₹2,000 for each new manager you refer!
+              Earn ₹{directReferralBonus.toLocaleString('en-IN')} for each new manager you refer!
             </h3>
             <p className="text-xs text-[#E2E9E3]/90 leading-relaxed">
-              When a manager registers with your code <span className="font-mono font-bold text-[#D5AE62]">{currentManager.referralCode}</span> and their referred restaurant achieves qualifying sales, ₹2,000 is directly credited to your wallet.
+              When a manager registers with your code <span className="font-mono font-bold text-[#D5AE62]">{currentManager.referralCode}</span> and their referred restaurant achieves qualifying sales, ₹{directReferralBonus.toLocaleString('en-IN')} is directly credited to your wallet.
             </p>
           </div>
 
@@ -254,10 +260,10 @@ export const ManagerOverview: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            {myRestaurants.length === 0 ? (
+            {displayRestaurants.length === 0 ? (
               <p className="text-xs text-[#78847D] py-4 text-center">No referred restaurants yet.</p>
             ) : (
-              myRestaurants.slice(0, 3).map(rest => (
+              displayRestaurants.slice(0, 4).map(rest => (
                 <div 
                   key={rest.id}
                   className="flex items-center justify-between p-3 rounded-xl bg-[#F7F5EF] border border-[#E2E9E3] hover:border-[#1B6B50] transition-colors"

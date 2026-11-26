@@ -152,7 +152,9 @@ export const AdminReferredRestaurants: React.FC = () => {
 
                   <td className="py-3 px-4">
                     <span className="font-semibold text-[#123C32] block">{rest.managerName}</span>
-                    <span className="text-[10px] text-[#78847D]">Ref: {rest.managerId}</span>
+                    <span className="text-[10px] font-mono text-[#1B6B50] font-semibold bg-[#1B6B50]/10 px-1.5 py-0.5 rounded">
+                      Code: {rest.managerReferralCode || 'A1001'}
+                    </span>
                   </td>
 
                   <td className="py-3 px-4">
@@ -175,8 +177,11 @@ export const AdminReferredRestaurants: React.FC = () => {
                     )}
                   </td>
 
-                  <td className="py-3 px-4 text-right font-bold text-[#123C32]">
-                    ₹{rest.totalSales.toLocaleString('en-IN')}
+                  <td className="py-3 px-4 text-right">
+                    <div className="font-bold text-[#123C32]">₹{rest.totalSales.toLocaleString('en-IN')}</div>
+                    {rest.status === 'active' && (
+                      <span className="text-[10px] text-[#21865A] font-medium block">Active Sales Sync</span>
+                    )}
                   </td>
 
                   <td className="py-3 px-4 text-center">
