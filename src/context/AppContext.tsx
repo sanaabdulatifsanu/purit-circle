@@ -33,6 +33,8 @@ interface AppContextType {
   logout: () => void;
   managerSubView: ManagerSubView;
   setManagerSubView: (view: ManagerSubView) => void;
+  isAddRestaurantModalOpen: boolean;
+  setIsAddRestaurantModalOpen: (open: boolean) => void;
   adminSubView: AdminSubView;
   setAdminSubView: (view: AdminSubView) => void;
   
@@ -66,6 +68,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [role, setRole] = useState<Role>('manager');
   const [managerSubView, setManagerSubView] = useState<ManagerSubView>('overview');
+  const [isAddRestaurantModalOpen, setIsAddRestaurantModalOpen] = useState<boolean>(false);
   const [adminSubView, setAdminSubView] = useState<AdminSubView>('overview');
   
   const [currentManager, setCurrentManager] = useState<Manager>(CURRENT_MANAGER);
@@ -115,8 +118,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       mobile: data.mobile || '',
       email: data.email || '',
       address: data.address || '',
-      city: data.city || 'Bengaluru',
-      state: data.state || 'Karnataka',
+      city: data.city || 'Kochi',
+      state: data.state || 'Kerala',
       pinCode: data.pinCode || '',
       gstNumber: data.gstNumber,
       category: data.category || 'Casual Dining',
@@ -452,6 +455,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       logout,
       managerSubView,
       setManagerSubView,
+      isAddRestaurantModalOpen,
+      setIsAddRestaurantModalOpen,
       adminSubView,
       setAdminSubView,
       currentManager,
