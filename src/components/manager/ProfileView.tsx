@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { User, ShieldCheck, Phone, Mail, Hash, Calendar, Building2, Check } from 'lucide-react';
+import { User, ShieldCheck, Phone, Mail, Hash, Calendar, Building2, Check, Pencil } from 'lucide-react';
 import { Badge } from '../common/Badge';
 
 export const ProfileView: React.FC = () => {
   const { currentManager } = useApp();
+  const [isEditing, setIsEditing] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   const [bankInfo, setBankInfo] = useState({
@@ -18,6 +19,8 @@ export const ProfileView: React.FC = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isEditing) return;
+    setIsEditing(false);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
   };
@@ -98,8 +101,9 @@ export const ProfileView: React.FC = () => {
               <input 
                 type="text" 
                 value={bankInfo.accountHolder}
+                disabled={!isEditing}
                 onChange={e => setBankInfo({...bankInfo, accountHolder: e.target.value})}
-                className="w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
+                className={`w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none ${!isEditing ? 'bg-[#F7F5EF] text-[#78847D] cursor-not-allowed' : ''}`}
               />
             </div>
 
@@ -109,8 +113,9 @@ export const ProfileView: React.FC = () => {
                 <input 
                   type="text" 
                   value={bankInfo.bankName}
+                  disabled={!isEditing}
                   onChange={e => setBankInfo({...bankInfo, bankName: e.target.value})}
-                  className="w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
+                  className={`w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none ${!isEditing ? 'bg-[#F7F5EF] text-[#78847D] cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -119,8 +124,9 @@ export const ProfileView: React.FC = () => {
                 <input 
                   type="text" 
                   value={bankInfo.ifscCode}
+                  disabled={!isEditing}
                   onChange={e => setBankInfo({...bankInfo, ifscCode: e.target.value.toUpperCase()})}
-                  className="w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono"
+                  className={`w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono ${!isEditing ? 'bg-[#F7F5EF] text-[#78847D] cursor-not-allowed' : ''}`}
                 />
               </div>
             </div>
@@ -130,8 +136,9 @@ export const ProfileView: React.FC = () => {
               <input 
                 type="text" 
                 value={bankInfo.accountNumber}
+                disabled={!isEditing}
                 onChange={e => setBankInfo({...bankInfo, accountNumber: e.target.value})}
-                className="w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none font-mono"
+                className={`w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none font-mono ${!isEditing ? 'bg-[#F7F5EF] text-[#78847D] cursor-not-allowed' : ''}`}
               />
             </div>
 
@@ -141,8 +148,9 @@ export const ProfileView: React.FC = () => {
                 <input 
                   type="text" 
                   value={bankInfo.panNumber}
+                  disabled={!isEditing}
                   onChange={e => setBankInfo({...bankInfo, panNumber: e.target.value.toUpperCase()})}
-                  className="w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono"
+                  className={`w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono ${!isEditing ? 'bg-[#F7F5EF] text-[#78847D] cursor-not-allowed' : ''}`}
                 />
               </div>
 
@@ -151,14 +159,33 @@ export const ProfileView: React.FC = () => {
                 <input 
                   type="text" 
                   value={bankInfo.upiId}
+                  disabled={!isEditing}
                   onChange={e => setBankInfo({...bankInfo, upiId: e.target.value})}
-                  className="w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
+                  className={`w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none ${!isEditing ? 'bg-[#F7F5EF] text-[#78847D] cursor-not-allowed' : ''}`}
                 />
               </div>
             </div>
 
-            <div className="pt-2 text-right">
-              <button type="submit" className="btn-primary text-xs">
+            <div className="pt-2 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                disabled={isEditing}
+                title="Edit Payout Details"
+                aria-label="Edit Payout Details"
+                className={`p-2 rounded-xl border transition-colors ${
+                  isEditing
+                    ? 'border-[#123C32]/20 bg-[#123C32]/10 text-[#123C32] cursor-default'
+                    : 'border-[#E2E9E3] text-[#123C32] hover:bg-[#F7F5EF] hover:border-[#123C32]'
+                }`}
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                type="submit"
+                disabled={!isEditing}
+                className={`btn-primary text-xs ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
                 Save Payout Details
               </button>
             </div>
