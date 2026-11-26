@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   Users, 
   Store, 
-  TrendingUp, 
   Wallet, 
   Gift, 
   ShieldCheck, 
@@ -13,12 +12,21 @@ import {
   FileSpreadsheet,
   ArrowUpRight,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  Bell,
+  Menu
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
 
-export const AdminOverview: React.FC = () => {
+interface AdminOverviewProps {
+  onToggleSidebar?: () => void;
+}
+
+export const AdminOverview: React.FC<AdminOverviewProps> = ({ onToggleSidebar }) => {
   const { 
+    role,
+    notifications,
+    markNotificationRead,
     allManagers, 
     restaurants, 
     salesTransactions, 
@@ -26,50 +34,137 @@ export const AdminOverview: React.FC = () => {
     setAdminSubView 
   } = useApp();
 
-  const totalSales = salesTransactions.reduce((acc, curr) => acc + curr.amount, 0);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const roleNotifs = notifications.filter(n => n.recipientRole === role);
+  const unreadCount = roleNotifs.filter(n => !n.isRead).length;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifDropdown(false);
+      }
+    };
+    if (showNotifDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifDropdown]);
+
   const totalRewards = salesTransactions.reduce((acc, curr) => acc + curr.rewardAmount, 0);
   const pendingApprovals = restaurants.filter(r => r.status === 'pending');
   const activeRestaurants = restaurants.filter(r => r.status === 'active');
   const pendingClaims = rewardClaims.filter(c => c.status === 'pending');
 
   return (
-    <div className="space-y-6">
+    <div>
       
-      {/* Top Banner with Purity Sync Status */}
-      <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl p-6 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-[#123C32]">Admin Master Console</h1>
-            <span className="bg-[#123C32] text-white text-xs font-semibold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#D5AE62]" /> Master Access
-            </span>
-          </div>
-          <p className="text-xs text-[#78847D] mt-1">
-            Governance for managers, restaurant referral mappings, synchronized sales, and rewards wallet payouts.
-          </p>
+      {/* Admin Master Console Header Bar (Unboxed Content) */}
+      <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-4 mb-6">
+        {/* Left: Console Title & Master Access Badge */}
+        <div className="flex items-center gap-2.5 flex-1 md:flex-initial min-w-0">
+          {onToggleSidebar && (
+            <button 
+              onClick={onToggleSidebar} 
+              className="lg:hidden p-2 text-[#78847D] hover:text-[#123C32] bg-[#FFFFFF] border border-[#E2E9E3] rounded-xl hover:bg-[#F7F5EF] transition-colors shadow-xs"
+              aria-label="Toggle navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+          <h1 className="text-xl font-bold text-[#123C32]">
+            Admin Master<span className="hidden sm:inline"> Console</span>
+          </h1>
+          <span className="hidden md:inline-flex bg-[#123C32] text-white text-xs font-semibold px-2.5 py-0.5 rounded-full items-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#D5AE62]" /> Master Access
+          </span>
         </div>
 
-        {/* Sync Status Indicator */}
-        <div className="flex items-center gap-3">
-          <div className="bg-[#21865A]/10 border border-[#21865A]/30 px-3.5 py-1.5 rounded-xl flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#21865A] animate-pulse" />
-            <div className="text-left">
-              <span className="text-[10px] text-[#78847D] uppercase font-bold tracking-wider block">Purity API Core</span>
-              <span className="text-xs font-bold text-[#21865A]">Synchronized (Live)</span>
-            </div>
+        {/* Right: Notification Bell & Review Approvals */}
+        <div className="contents md:flex md:items-center md:gap-2.5">
+          {/* Notification Bell Dropdown */}
+          <div className="relative" ref={notifRef}>
+            <button 
+              onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+              className="relative p-2 text-[#78847D] hover:text-[#123C32] bg-[#FFFFFF] border border-[#E2E9E3] hover:border-[#123C32]/30 rounded-xl transition-colors shadow-xs"
+              aria-label="View notifications"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#D9534F] text-white text-[10px] font-bold flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifDropdown && (
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl shadow-elevated z-50 p-3 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between pb-2 border-b border-[#E2E9E3]">
+                  <h4 className="font-semibold text-sm text-[#123C32] flex items-center gap-1.5">
+                    <Bell className="w-4 h-4 text-[#D5AE62]" /> Notifications ({unreadCount} unread)
+                  </h4>
+                  <button 
+                    onClick={() => roleNotifs.forEach(n => markNotificationRead(n.id))}
+                    className="text-xs text-[#1B6B50] hover:underline font-medium"
+                  >
+                    Mark all read
+                  </button>
+                </div>
+
+                <div className="max-h-72 overflow-y-auto divide-y divide-[#E2E9E3] mt-1">
+                  {roleNotifs.length === 0 ? (
+                    <p className="text-xs text-[#78847D] text-center py-6">No new notifications</p>
+                  ) : (
+                    roleNotifs.map(notif => (
+                      <div 
+                        key={notif.id}
+                        onClick={() => markNotificationRead(notif.id)}
+                        className={`p-2.5 rounded-xl transition-colors cursor-pointer text-left ${notif.isRead ? 'opacity-70 hover:bg-[#F7F5EF]' : 'bg-[#F7F5EF]/60 hover:bg-[#F7F5EF]'}`}
+                      >
+                        <div className="flex items-center justify-between text-xs">
+                          <span className={`font-semibold ${notif.type === 'success' ? 'text-[#21865A]' : notif.type === 'warning' ? 'text-[#D99A32]' : 'text-[#123C32]'}`}>
+                            {notif.title}
+                          </span>
+                          <span className="text-[10px] text-[#78847D]">{notif.timestamp}</span>
+                        </div>
+                        <p className="text-xs text-[#78847D] mt-1 line-clamp-2">{notif.message}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="pt-2 border-t border-[#E2E9E3] mt-1 text-center">
+                  <button 
+                    onClick={() => {
+                      setShowNotifDropdown(false);
+                      setAdminSubView('notifications');
+                    }}
+                    className="text-xs text-[#123C32] font-semibold hover:underline"
+                  >
+                    View all notifications →
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          <button 
-            onClick={() => setAdminSubView('restaurants')}
-            className="btn-primary text-xs"
-          >
-            Review Approvals ({pendingApprovals.length})
-          </button>
+          {/* Review Approvals Action Button */}
+          <div className="hidden md:contents">
+            <button 
+              onClick={() => setAdminSubView('restaurants')}
+              className="btn-primary text-xs whitespace-nowrap"
+            >
+              Review Approvals ({pendingApprovals.length})
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Admin KPI Matrix (PRD Section 17) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-6">
         
         <div className="purity-card p-4 hover:border-[#123C32] transition-colors">
           <div className="flex items-center justify-between text-[#78847D] mb-1">
@@ -98,16 +193,7 @@ export const AdminOverview: React.FC = () => {
           <span className="text-[10px] text-[#D99A32] mt-1 block">Awaiting customer mapping</span>
         </div>
 
-        <div className="purity-card p-4 hover:border-[#123C32] transition-colors">
-          <div className="flex items-center justify-between text-[#78847D] mb-1">
-            <span className="text-[11px] font-medium">Synchronized Sales</span>
-            <TrendingUp className="w-3.5 h-3.5 text-[#123C32]" />
-          </div>
-          <div className="text-2xl font-bold text-[#123C32]">₹{(totalSales + 1200000).toLocaleString('en-IN')}</div>
-          <span className="text-[10px] text-[#21865A] mt-1 block">+18.5% MoM</span>
-        </div>
-
-        <div className="purity-card p-4 hover:border-[#D5AE62] transition-colors">
+        <div className="hidden md:block purity-card p-4 hover:border-[#D5AE62] transition-colors">
           <div className="flex items-center justify-between text-[#78847D] mb-1">
             <span className="text-[11px] font-medium">Total Rewards</span>
             <Sparkles className="w-3.5 h-3.5 text-[#D5AE62]" />
@@ -137,7 +223,7 @@ export const AdminOverview: React.FC = () => {
               <h3 className="text-sm font-bold text-[#123C32] flex items-center gap-1.5">
                 <Store className="w-4 h-4 text-[#D99A32]" /> Pending Restaurant Referrals
               </h3>
-              <p className="text-xs text-[#78847D]">Leads submitted by managers requiring Purity ID verification</p>
+              <p className="hidden md:block text-xs text-[#78847D]">Leads submitted by managers requiring Purity ID verification</p>
             </div>
             <button 
               onClick={() => setAdminSubView('restaurants')}
@@ -158,7 +244,7 @@ export const AdminOverview: React.FC = () => {
                   <div>
                     <h4 className="text-xs font-bold text-[#202B27]">{rest.restaurantName}</h4>
                     <div className="text-[11px] text-[#78847D] mt-0.5">
-                      Referred by: <span className="font-semibold text-[#123C32]">{rest.managerName}</span> • {rest.city}
+                      Referred by: <span className="font-semibold text-[#123C32]">{rest.managerName}</span> • {rest.address ? `${rest.address}, ${rest.city}` : rest.city}
                     </div>
                     {rest.existingPurityCustomerId && (
                       <span className="font-mono text-[10px] bg-[#E2E9E3] text-[#123C32] px-1.5 py-0.2 rounded mt-1 inline-block">
@@ -186,7 +272,7 @@ export const AdminOverview: React.FC = () => {
               <h3 className="text-sm font-bold text-[#123C32] flex items-center gap-1.5">
                 <Gift className="w-4 h-4 text-[#D5AE62]" /> Pending Reward Claims
               </h3>
-              <p className="text-xs text-[#78847D]">Manager redemption requests awaiting approval</p>
+              <p className="hidden md:block text-xs text-[#78847D]">Manager redemption requests awaiting approval</p>
             </div>
             <button 
               onClick={() => setAdminSubView('claims')}
@@ -205,9 +291,8 @@ export const AdminOverview: React.FC = () => {
               pendingClaims.map(claim => (
                 <div key={claim.id} className="p-3.5 rounded-xl bg-[#F7F5EF] border border-[#E2E9E3] flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#202B27]">{claim.rewardTitle}</span>
-                      <span className="font-mono text-[10px] text-[#78847D]">{claim.id}</span>
+                    <div className="text-xs font-bold text-[#202B27]">
+                      {claim.rewardTitle}
                     </div>
                     <div className="text-[11px] text-[#78847D] mt-0.5">
                       Requested by: <span className="font-semibold text-[#123C32]">{claim.managerName}</span> • ₹{claim.requiredAmount.toLocaleString('en-IN')}

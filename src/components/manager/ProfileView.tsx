@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { User, ShieldCheck, Phone, Mail, Hash, Calendar, Building2, Check, Pencil } from 'lucide-react';
+import { User, ShieldCheck, Phone, Hash, Calendar, Building2, Check, Pencil } from 'lucide-react';
 import { Badge } from '../common/Badge';
 
 export const ProfileView: React.FC = () => {
@@ -67,11 +67,6 @@ export const ProfileView: React.FC = () => {
             <div>
               <span className="text-[#78847D] block">Mobile Phone:</span>
               <span className="font-semibold text-[#202B27]">+91 {currentManager.mobile}</span>
-            </div>
-
-            <div>
-              <span className="text-[#78847D] block">Registered Email:</span>
-              <span className="font-semibold text-[#202B27]">{currentManager.email}</span>
             </div>
 
             <div>
