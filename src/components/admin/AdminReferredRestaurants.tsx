@@ -9,12 +9,17 @@ import {
   MapPin, 
   X,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  Menu
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { RestaurantReferral } from '../../types';
 
-export const AdminReferredRestaurants: React.FC = () => {
+interface AdminReferredRestaurantsProps {
+  onToggleSidebar?: () => void;
+}
+
+export const AdminReferredRestaurants: React.FC<AdminReferredRestaurantsProps> = ({ onToggleSidebar }) => {
   const { 
     restaurants, 
     approveRestaurant, 
@@ -67,16 +72,27 @@ export const AdminReferredRestaurants: React.FC = () => {
     <div className="space-y-6">
       
       {/* Top Header */}
-      <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl p-6 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
-            <Store className="w-6 h-6 text-[#1B6B50]" />
-            <span className="md:hidden">Referred Restaurants</span>
-            <span className="hidden md:inline">Referred Restaurants Directory & Mapping</span>
-          </h1>
-          <p className="text-xs text-[#78847D] mt-1">
-            Review manager submissions, verify duplicate records, and map approved restaurants to Purity Website IDs.
-          </p>
+      <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl p-4 sm:p-6 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          {onToggleSidebar && (
+            <button 
+              onClick={onToggleSidebar} 
+              className="lg:hidden p-2 text-[#78847D] hover:text-[#123C32] bg-[#FFFFFF] border border-[#E2E9E3] rounded-xl hover:bg-[#F7F5EF] transition-colors shadow-xs shrink-0 cursor-pointer"
+              aria-label="Toggle navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
+              <Store className="w-6 h-6 text-[#1B6B50]" />
+              <span className="md:hidden">Referred Restaurants</span>
+              <span className="hidden md:inline">Referred Restaurants Directory & Mapping</span>
+            </h1>
+            <p className="text-xs text-[#78847D] mt-1">
+              Review manager submissions, verify duplicate records, and map approved restaurants to Purity Website IDs.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

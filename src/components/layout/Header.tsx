@@ -160,8 +160,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             9633231212
           </span>
         </a>
-      ) : (
-        /* Code number badge - on other screens */
+      ) : role === 'manager' ? (
+        /* Code number badge - on manager screens (except My Restaurants where Purity support phone is displayed) */
         <div 
           onClick={handleCopyCode}
           className="cursor-pointer group flex items-center gap-1.5 sm:gap-2 bg-[#FFFFFF] hover:bg-[#D5AE62]/10 border border-[#E2E9E3] hover:border-[#D5AE62] px-2.5 sm:px-3.5 py-1.5 rounded-xl transition-all shadow-2xs shrink-0"
@@ -174,7 +174,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             Code:
           </span>
           <span className="font-mono text-xs sm:text-sm font-bold text-[#123C32] bg-[#F7F5EF] px-1.5 sm:px-2 py-0.5 rounded-lg border border-[#E2E9E3]">
-            {role === 'manager' ? currentManager.referralCode : '1001'}
+            {currentManager.referralCode}
           </span>
           {copiedCode ? (
             <span className="text-[10px] font-bold text-[#21865A] bg-[#21865A]/10 px-1 py-0.5 rounded flex items-center gap-0.5">
@@ -184,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             <Copy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#78847D] group-hover:text-[#D5AE62] transition-colors" />
           )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 

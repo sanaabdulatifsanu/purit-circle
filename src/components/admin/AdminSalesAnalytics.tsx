@@ -7,7 +7,8 @@ import {
   Filter, 
   Package, 
   Store,
-  Layers
+  Layers,
+  Menu
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -22,7 +23,11 @@ import {
   Cell
 } from 'recharts';
 
-export const AdminSalesAnalytics: React.FC = () => {
+interface AdminSalesAnalyticsProps {
+  onToggleSidebar?: () => void;
+}
+
+export const AdminSalesAnalytics: React.FC<AdminSalesAnalyticsProps> = ({ onToggleSidebar }) => {
   const { salesTransactions, restaurants } = useApp();
 
   const totalSalesAmount = salesTransactions.reduce((acc, curr) => acc + curr.amount, 0);
@@ -53,13 +58,24 @@ export const AdminSalesAnalytics: React.FC = () => {
       
       {/* Header */}
       <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl p-6 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-[#1B6B50]" /> System-Wide Sales Analytics
-          </h1>
-          <p className="text-xs text-[#78847D] mt-1">
-            Aggregated metrics across all referred and mapped restaurant accounts in Purity Circle.
-          </p>
+        <div className="flex items-center gap-3">
+          {onToggleSidebar && (
+            <button 
+              onClick={onToggleSidebar} 
+              className="lg:hidden p-2 text-[#78847D] hover:text-[#123C32] bg-[#FFFFFF] border border-[#E2E9E3] rounded-xl hover:bg-[#F7F5EF] transition-colors shadow-xs shrink-0 cursor-pointer"
+              aria-label="Toggle navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-[#1B6B50]" /> System-Wide Sales Analytics
+            </h1>
+            <p className="text-xs text-[#78847D] mt-1">
+              Aggregated metrics across all referred and mapped restaurant accounts in Purity Circle.
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
