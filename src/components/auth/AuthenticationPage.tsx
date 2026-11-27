@@ -12,7 +12,9 @@ import {
   ShieldCheck,
   PhoneCall,
   Copy,
-  Check
+  Check,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export const AuthenticationPage: React.FC = () => {
@@ -29,12 +31,15 @@ export const AuthenticationPage: React.FC = () => {
   // Sign In Form State
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Sign Up Form State
   const [name, setName] = useState('');
   const [signupPhone, setSignupPhone] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [referralCode, setReferralCode] = useState('');
 
   // Dynamic Lookup for Referral Code Owner
@@ -257,12 +262,20 @@ export const AuthenticationPage: React.FC = () => {
                 <div className="relative">
                   <Lock className="w-4 h-4 text-[#78847D] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input 
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none text-xs bg-[#F7F5EF]/30"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none text-xs bg-[#F7F5EF]/30"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#78847D] hover:text-[#123C32] p-1 transition-colors cursor-pointer"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -343,13 +356,21 @@ export const AuthenticationPage: React.FC = () => {
                   <div className="relative">
                     <Lock className="w-4 h-4 text-[#78847D] absolute left-3 top-1/2 -translate-y-1/2" />
                     <input 
-                      type="password"
+                      type={showSignupPassword ? "text" : "password"}
                       required
                       placeholder="••••••••"
                       value={signupPassword}
                       onChange={e => setSignupPassword(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none text-xs bg-[#F7F5EF]/30"
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none text-xs bg-[#F7F5EF]/30"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#78847D] hover:text-[#123C32] p-1 transition-colors cursor-pointer"
+                      aria-label={showSignupPassword ? "Hide password" : "Show password"}
+                    >
+                      {showSignupPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
                   </div>
                 </div>
 
@@ -360,13 +381,21 @@ export const AuthenticationPage: React.FC = () => {
                   <div className="relative">
                     <Lock className="w-4 h-4 text-[#78847D] absolute left-3 top-1/2 -translate-y-1/2" />
                     <input 
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       required
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={e => setConfirmPassword(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none text-xs bg-[#F7F5EF]/30"
+                      className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none text-xs bg-[#F7F5EF]/30"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#78847D] hover:text-[#123C32] p-1 transition-colors cursor-pointer"
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
                   </div>
                 </div>
               </div>
