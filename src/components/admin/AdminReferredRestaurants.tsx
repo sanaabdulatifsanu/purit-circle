@@ -3,7 +3,6 @@ import { useApp } from '../../context/AppContext';
 import { 
   Store, 
   Search, 
-  Filter, 
   CheckCircle2, 
   XCircle, 
   Link as LinkIcon, 
@@ -71,7 +70,9 @@ export const AdminReferredRestaurants: React.FC = () => {
       <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl p-6 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
-            <Store className="w-6 h-6 text-[#1B6B50]" /> Referred Restaurants Directory & Mapping
+            <Store className="w-6 h-6 text-[#1B6B50]" />
+            <span className="md:hidden">Referred Restaurants</span>
+            <span className="hidden md:inline">Referred Restaurants Directory & Mapping</span>
           </h1>
           <p className="text-xs text-[#78847D] mt-1">
             Review manager submissions, verify duplicate records, and map approved restaurants to Purity Website IDs.
@@ -118,23 +119,41 @@ export const AdminReferredRestaurants: React.FC = () => {
             placeholder="Search restaurant or manager..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-1.5 text-xs rounded-lg border border-[#E2E9E3] focus:outline-none focus:border-[#123C32] bg-[#F7F5EF]/50 w-64"
+            className="pl-9 pr-4 py-1.5 text-xs rounded-lg border border-[#E2E9E3] focus:outline-none focus:border-[#123C32] w-full sm:w-64"
           />
         </div>
       </div>
 
+      {/* Verification Notice Banner if pending items exist */}
+      {restaurants.filter(r => r.status === 'pending').length > 0 && tabFilter !== 'pending' && (
+        <div className="bg-[#D99A32]/10 border border-[#D99A32]/30 rounded-xl p-3 flex items-center justify-between text-xs text-[#123C32]">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-[#D99A32] shrink-0" />
+            <span>
+              <strong>{restaurants.filter(r => r.status === 'pending').length} restaurant leads</strong> require admin verification & mapping to official Purity IDs.
+            </span>
+          </div>
+          <button 
+            onClick={() => setTabFilter('pending')}
+            className="text-[11px] font-bold text-[#1B6B50] hover:underline shrink-0"
+          >
+            Review Pending →
+          </button>
+        </div>
+      )}
+
       {/* Table */}
-      <div className="purity-card overflow-hidden">
+      <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl shadow-subtle overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-[#123C32]/5 border-b border-[#E2E9E3] text-[#78847D] text-[11px] font-semibold uppercase">
                 <th className="py-3 px-4">Restaurant Details</th>
                 <th className="py-3 px-4">Referring Manager</th>
-                <th className="py-3 px-4">Mapped Purity ID</th>
-                <th className="py-3 px-4">Status & Sync</th>
+                <th className="py-3 px-4">Purity Customer ID</th>
+                <th className="py-3 px-4">Status</th>
                 <th className="py-3 px-4 text-right">Lifetime Sales</th>
-                <th className="py-3 px-4 text-center">Administrative Actions</th>
+                <th className="py-3 px-4 text-center">Verification Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E9E3]">
@@ -143,10 +162,11 @@ export const AdminReferredRestaurants: React.FC = () => {
                   <td className="py-3 px-4">
                     <div className="font-bold text-[#123C32]">{rest.restaurantName}</div>
                     <div className="text-[11px] text-[#78847D] flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3 text-[#1B6B50]" /> {rest.address}, {rest.city}
+                      <MapPin className="w-3 h-3 text-[#1B6B50] shrink-0" />
+                      <span>{rest.address}, {rest.city}</span>
                     </div>
-                    <div className="text-[10px] text-[#78847D]">
-                      Contact: {rest.contactPerson} ({rest.mobile})
+                    <div className="text-[10px] text-[#78847D] mt-0.5">
+                      Contact: {rest.contactPerson} ({rest.mobile}) • Submitted {rest.submissionDate}
                     </div>
                   </td>
 
@@ -186,38 +206,53 @@ export const AdminReferredRestaurants: React.FC = () => {
 
                   <td className="py-3 px-4 text-center">
                     {rest.status === 'pending' ? (
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => {
                             setMappingTarget(rest);
                             setPurityCustomerId(rest.existingPurityCustomerId || '');
                           }}
-                          className="btn-primary text-xs py-1 px-2.5"
+                          className="px-2.5 py-1 rounded bg-[#21865A] hover:bg-[#1B6B50] text-white font-semibold text-[11px] flex items-center gap-1 shadow-xs transition-colors"
+                          title="Verify lead and map to official Purity Customer Account"
                         >
-                          Approve & Map
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Approve &amp; Map
                         </button>
                         <button
-                          onClick={() => setRejectTarget(rest)}
-                          className="p-1 rounded-lg border border-[#D9534F]/30 text-[#D9534F] hover:bg-[#D9534F]/10"
-                          title="Reject referral"
+                          onClick={() => {
+                            setRejectTarget(rest);
+                            setRejectionReason('');
+                          }}
+                          className="p-1 rounded bg-[#D9534F]/10 hover:bg-[#D9534F]/20 text-[#D9534F] text-[11px] transition-colors"
+                          title="Reject duplicate or invalid referral"
                         >
                           <XCircle className="w-4 h-4" />
                         </button>
                       </div>
                     ) : rest.status === 'active' || rest.status === 'inactive' ? (
-                      <button
-                        onClick={() => toggleRestaurantStatus(rest.id)}
-                        className={`text-[11px] font-medium px-2 py-1 rounded-lg border transition-colors ${
-                          rest.status === 'active' 
-                            ? 'border-[#D9534F]/30 text-[#D9534F] hover:bg-[#D9534F]/10' 
-                            : 'border-[#21865A]/30 text-[#21865A] hover:bg-[#21865A]/10'
-                        }`}
-                        title="Simulate status change on Purity website"
-                      >
-                        {rest.status === 'active' ? 'Mark Inactive' : 'Mark Active'}
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        {!rest.mappedPurityId && (
+                          <button
+                            onClick={() => {
+                              setMappingTarget(rest);
+                              setPurityCustomerId(rest.existingPurityCustomerId || '');
+                            }}
+                            className="text-[11px] text-[#1B6B50] hover:underline font-semibold flex items-center gap-1"
+                          >
+                            <LinkIcon className="w-3 h-3" /> Map to Core
+                          </button>
+                        )}
+                        <button
+                          onClick={() => toggleRestaurantStatus(rest.id)}
+                          className="text-[11px] text-[#78847D] hover:text-[#123C32] flex items-center gap-1"
+                          title="Toggle active / suspended order sync"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          {rest.status === 'active' ? 'Suspend' : 'Activate'}
+                        </button>
+                      </div>
                     ) : (
-                      <span className="text-[11px] text-[#78847D] italic">Archived</span>
+                      <span className="text-[10px] text-[#78847D] italic">Archived</span>
                     )}
                   </td>
                 </tr>
@@ -239,7 +274,7 @@ export const AdminReferredRestaurants: React.FC = () => {
             </button>
 
             <h3 className="text-base font-bold text-[#123C32] mb-1">
-              Approve & Map to Purity Core
+              Approve &amp; Map to Purity Core
             </h3>
             <p className="text-xs text-[#78847D] mb-4">
               Connecting <span className="font-bold text-[#123C32]">{mappingTarget.restaurantName}</span> with official Purity Customer Account.
@@ -275,7 +310,7 @@ export const AdminReferredRestaurants: React.FC = () => {
                   type="submit" 
                   className="btn-primary text-xs"
                 >
-                  Confirm Approval & Mapping
+                  Confirm Approval &amp; Mapping
                 </button>
               </div>
             </form>

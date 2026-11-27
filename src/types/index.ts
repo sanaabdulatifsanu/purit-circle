@@ -32,7 +32,7 @@ export interface Manager {
   id: string;
   name: string;
   mobile: string;
-  email: string;
+  email?: string;
   referralCode: string; // e.g. A1001, 1001
   referredByCode?: string; // e.g. 1001
   referredByName?: string;
@@ -43,6 +43,8 @@ export interface Manager {
   walletBalance: number;
   totalRewardsEarned: number;
   customCommissionRate?: number;
+  commissionRate?: number; // Custom sales commission % (e.g. 10 for 10%, 8 for 8%)
+  password?: string; // Login password (e.g. 'password123')
 }
 
 export type RestaurantStatus = 'pending' | 'approved' | 'rejected' | 'active' | 'inactive';
@@ -56,7 +58,7 @@ export interface RestaurantReferral {
   ownerName: string;
   contactPerson: string;
   mobile: string;
-  email: string;
+  email?: string;
   address: string;
   city: string;
   state: string;

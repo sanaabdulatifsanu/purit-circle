@@ -33,6 +33,8 @@ interface AppContextType {
   logout: () => void;
   managerSubView: ManagerSubView;
   setManagerSubView: (view: ManagerSubView) => void;
+  isAddRestaurantModalOpen: boolean;
+  setIsAddRestaurantModalOpen: (open: boolean) => void;
   adminSubView: AdminSubView;
   setAdminSubView: (view: AdminSubView) => void;
   claimsViewMode: 'table' | 'pending-view';
@@ -57,6 +59,8 @@ interface AppContextType {
   submitRewardClaim: (rewardId: string, notes?: string) => { success: boolean; message: string };
   updateClaimStatus: (claimId: string, status: RewardClaim['status'], notes?: string, payoutRef?: string) => void;
   toggleManagerStatus: (managerId: string) => void;
+  updateManagerCommission: (managerId: string, commissionRate: number) => void;
+  updateManagerPassword: (managerId: string, newPassword: string) => { success: boolean; message: string };
   markNotificationRead: (id: string) => void;
   adminPasscode: string;
   updateAdminPasscode: (code: string) => void;
@@ -76,6 +80,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [role, setRole] = useState<Role>('manager');
   const [managerSubView, setManagerSubView] = useState<ManagerSubView>('overview');
+  const [isAddRestaurantModalOpen, setIsAddRestaurantModalOpen] = useState<boolean>(false);
   const [adminSubView, setAdminSubView] = useState<AdminSubView>('overview');
   const [claimsViewMode, setClaimsViewMode] = useState<'table' | 'pending-view'>('table');
   
@@ -144,10 +149,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ownerName: data.ownerName || '',
       contactPerson: data.contactPerson || '',
       mobile: data.mobile || '',
-      email: data.email || '',
       address: data.address || '',
-      city: data.city || 'Bengaluru',
-      state: data.state || 'Karnataka',
+      city: data.city || 'Kochi',
+      state: data.state || 'Kerala',
       pinCode: data.pinCode || '',
       gstNumber: data.gstNumber,
       category: data.category || 'Casual Dining',
@@ -497,6 +501,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
+  // Update Manager Custom Commission Rate & automatically recalculate wallet balance (Sales commission only)
+  const updateManagerCommission = (managerId: string, commissionRate: number) => {
+    const validRate = Math.max(0, Math.min(100, Number(commissionRate) || 0));
+
+    setAllManagers(prev => prev.map(m => {
+      if (m.id === managerId) {
+        const redeemed = rewardClaims
+          .filter(c => c.managerId === m.id && (c.status === 'completed' || c.status === 'approved' || c.status === 'pending'))
+          .reduce((sum, c) => sum + c.requiredAmount, 0);
+        const sales = m.totalSalesGenerated || 0;
+        const newWalletBalance = Math.max(0, Math.round((sales * (validRate / 100)) - redeemed));
+        return {
+          ...m,
+          commissionRate: validRate,
+          walletBalance: newWalletBalance,
+        };
+      }
+      return m;
+    }));
+
+    setCurrentManager(prev => {
+      if (prev.id === managerId) {
+        const redeemed = rewardClaims
+          .filter(c => c.managerId === prev.id && (c.status === 'completed' || c.status === 'approved' || c.status === 'pending'))
+          .reduce((sum, c) => sum + c.requiredAmount, 0);
+        const sales = prev.totalSalesGenerated || 0;
+        const newWalletBalance = Math.max(0, Math.round((sales * (validRate / 100)) - redeemed));
+        return {
+          ...prev,
+          commissionRate: validRate,
+          walletBalance: newWalletBalance,
+        };
+      }
+      return prev;
+    });
+
+    const targetManager = allManagers.find(m => m.id === managerId);
+    const auditNotif: NotificationItem = {
+      id: `notif_comm_${Date.now()}`,
+      recipientRole: 'admin',
+      title: 'Manager Commission Rate Updated',
+      message: `Commission rate for ${targetManager?.name || managerId} set to ${validRate}%. Wallet balance recalculated based on sales commission only.`,
+      type: 'info',
+      timestamp: 'Just now',
+      isRead: false,
+    };
+    setNotifications(prev => [auditNotif, ...prev]);
+  };
+
+  // Update/Reset Manager Login Password
+  const updateManagerPassword = (managerId: string, newPassword: string): { success: boolean; message: string } => {
+    const trimmed = newPassword.trim();
+    if (!trimmed || trimmed.length < 4) {
+      return { success: false, message: 'Password must be at least 4 characters long.' };
+    }
+
+    setAllManagers(prev => prev.map(m => {
+      if (m.id === managerId) {
+        return { ...m, password: trimmed };
+      }
+      return m;
+    }));
+
+    setCurrentManager(prev => {
+      if (prev.id === managerId) {
+        return { ...prev, password: trimmed };
+      }
+      return prev;
+    });
+
+    const target = allManagers.find(m => m.id === managerId);
+    const auditNotif: NotificationItem = {
+      id: `notif_pwd_${Date.now()}`,
+      recipientRole: 'admin',
+      title: 'Manager Password Reset by Admin',
+      message: `Password for manager ${target?.name || managerId} (${target?.mobile || ''}) was successfully updated.`,
+      type: 'success',
+      timestamp: 'Just now',
+      isRead: false,
+    };
+    setNotifications(prev => [auditNotif, ...prev]);
+
+    return { success: true, message: `Password for ${target?.name || 'Manager'} reset successfully!` };
+  };
+
   const markNotificationRead = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
   };
@@ -541,7 +630,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Register Manager
-  const registerManager = (data: { name: string; mobile: string; referralCode: string }): { success: boolean; message: string } => {
+  const registerManager = (data: { name: string; mobile: string; referralCode: string; password?: string }): { success: boolean; message: string } => {
     // Valid referral code check: must match 1001 or an existing manager's code
     const validReferrer = allManagers.find(m => m.referralCode.toUpperCase() === data.referralCode.toUpperCase());
     const isInitialCode = data.referralCode === '1001';
@@ -560,7 +649,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `mgr_${Date.now()}`,
       name: data.name,
       mobile: data.mobile,
-      email: `${data.name.toLowerCase().replace(/\s+/g, '.')}@puritycircle.in`,
       referralCode: newCode,
       referredByCode: data.referralCode,
       referredByName: validReferrer ? validReferrer.name : 'Initial System Code (1001)',
@@ -570,6 +658,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalSalesGenerated: 0,
       walletBalance: 0,
       totalRewardsEarned: 0,
+      commissionRate: 10,
+      password: data.password || 'password123',
     };
 
     setAllManagers(prev => [...prev, newMgr]);
@@ -622,6 +712,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       logout,
       managerSubView,
       setManagerSubView,
+      isAddRestaurantModalOpen,
+      setIsAddRestaurantModalOpen,
       adminSubView,
       setAdminSubView,
       claimsViewMode,
@@ -642,6 +734,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       submitRewardClaim,
       updateClaimStatus,
       toggleManagerStatus,
+      updateManagerCommission,
+      updateManagerPassword,
       markNotificationRead,
       adminPasscode,
       updateAdminPasscode,

@@ -55,7 +55,7 @@ export const AdminReports: React.FC = () => {
       m.name,
       m.referralCode,
       m.mobile,
-      m.email,
+      m.email || 'N/A',
       m.referredByCode || 'N/A',
       m.status,
       m.referredRestaurantsCount,

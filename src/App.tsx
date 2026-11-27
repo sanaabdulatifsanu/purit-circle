@@ -16,6 +16,7 @@ import { ClaimRewards } from './components/manager/ClaimRewards';
 import { MyReferrals } from './components/manager/MyReferrals';
 import { NotificationsView } from './components/manager/NotificationsView';
 import { ProfileView } from './components/manager/ProfileView';
+import { AddRestaurantModal } from './components/manager/AddRestaurantModal';
 
 // Admin Modules
 import { AdminOverview } from './components/admin/AdminOverview';
@@ -81,7 +82,7 @@ const MainLayout: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
-        {/* Top Header - Omitted on Settings, Notifications, and Payout & Disbursement Records */}
+        {/* Top Header - Omitted on Settings, Notifications, and Reward Claims */}
         {!isHeaderHidden ? (
           <Header 
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
@@ -128,7 +129,7 @@ const MainLayout: React.FC = () => {
         )}
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {role === 'manager' ? (
             <>
               {managerSubView === 'overview' && <ManagerOverview />}
@@ -143,8 +144,12 @@ const MainLayout: React.FC = () => {
             </>
           ) : (
             <>
-              {adminSubView === 'overview' && <AdminOverview />}
-              {(adminSubView === 'managers' || adminSubView === 'referrals') && <AdminManagersView />}
+              {adminSubView === 'overview' && (
+                <AdminOverview onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+              )}
+              {(adminSubView === 'managers' || adminSubView === 'referrals') && (
+                <AdminManagersView onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+              )}
               {adminSubView === 'restaurants' && <AdminReferredRestaurants />}
               {['rewards-claims', 'reward-config', 'referral-rewards', 'wallet', 'claims'].includes(adminSubView) && (
                 <AdminRewardsAndClaims />
@@ -156,6 +161,9 @@ const MainLayout: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Global Manager Add Restaurant Modal */}
+      {role === 'manager' && <AddRestaurantModal />}
 
       {/* Auth & Admin Gateway Modal */}
       <AuthModal 

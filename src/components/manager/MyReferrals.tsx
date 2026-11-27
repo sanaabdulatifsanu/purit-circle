@@ -34,31 +34,37 @@ export const MyReferrals: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
-      {/* Top Header */}
-      <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl p-6 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
-            <Users className="w-6 h-6 text-[#1B6B50]" /> Manager Referral Network
-          </h1>
-          <p className="text-xs text-[#78847D] mt-1">
-            Grow your manager circle and earn {formattedBonus} direct bonuses for each manager's qualifying restaurant sales.
-          </p>
-        </div>
-
-        <div className="bg-[#123C32]/5 border border-[#123C32]/10 px-4 py-2 rounded-xl text-right">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-[#78847D]">Referred Managers</span>
-          <span className="text-xl font-extrabold text-[#123C32] block">
-            {myReferredManagers.length} Managers
-          </span>
-        </div>
-      </div>
-
       {/* Unique Referral Code Card (PRD Section 4 & Section 11) */}
-      <div className="bg-gradient-to-br from-[#123C32] to-[#1B6B50] text-white rounded-2xl p-6 shadow-elevated border border-[#1B6B50] relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#123C32] to-[#1B6B50] text-white rounded-2xl p-4 sm:p-6 shadow-elevated border border-[#1B6B50] relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-radial from-[#D5AE62]/20 to-transparent pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        {/* Mobile Compact View */}
+        <div className="relative z-10 flex flex-col gap-3 sm:hidden">
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold text-white">
+              Refer &amp; Earn ₹2,000
+            </h2>
+            <p className="text-xs text-[#E2E9E3]/90 leading-snug line-clamp-2">
+              Share your code with new managers to earn ₹2,000 on their first qualifying order.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 bg-[#123C32]/70 border border-[#D5AE62]/40 rounded-full pl-4 pr-1.5 py-1.5">
+            <span className="font-mono text-base font-black text-[#D5AE62] tracking-widest">
+              {currentManager.referralCode}
+            </span>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 bg-[#D5AE62] text-[#123C32] hover:bg-[#c79e50] px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm shrink-0"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-[#123C32]" /> : <Copy className="w-3.5 h-3.5 text-[#123C32]" />}
+              <span>{copied ? 'Copied!' : 'Copy'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop / Tablet View */}
+        <div className="relative z-10 hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-lg">
             <div className="inline-flex items-center gap-1.5 bg-[#D5AE62] text-[#123C32] px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" /> Direct Incentive Rule
@@ -87,39 +93,6 @@ export const MyReferrals: React.FC = () => {
               <span>{copied ? 'Code Copied!' : 'Copy Referral Code'}</span>
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Referral Rules Explanation (PRD Section 6 & 11) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="purity-card p-4">
-          <div className="w-8 h-8 rounded-lg bg-[#123C32]/10 flex items-center justify-center text-[#123C32] mb-3">
-            <span className="font-bold text-sm">1</span>
-          </div>
-          <h4 className="text-xs font-bold text-[#123C32]">Manager Registers with Code</h4>
-          <p className="text-xs text-[#78847D] mt-1 leading-relaxed">
-            The new manager enters your referral code during mandatory registration. System permanently maps the relationship.
-          </p>
-        </div>
-
-        <div className="purity-card p-4">
-          <div className="w-8 h-8 rounded-lg bg-[#1B6B50]/10 flex items-center justify-center text-[#1B6B50] mb-3">
-            <span className="font-bold text-sm">2</span>
-          </div>
-          <h4 className="text-xs font-bold text-[#123C32]">Referred Restaurant Generates Sales</h4>
-          <p className="text-xs text-[#78847D] mt-1 leading-relaxed">
-            The referred manager onboarded an approved restaurant that completes its first qualifying sales order.
-          </p>
-        </div>
-
-        <div className="purity-card p-4 bg-gradient-to-br from-[#FFFFFF] to-[#F7F5EF] border-[#D5AE62]">
-          <div className="w-8 h-8 rounded-lg bg-[#D5AE62] flex items-center justify-center text-[#123C32] mb-3 shadow-xs">
-            <span className="font-bold text-sm">3</span>
-          </div>
-          <h4 className="text-xs font-bold text-[#123C32]">{formattedBonus} Credited to You</h4>
-          <p className="text-xs text-[#78847D] mt-1 leading-relaxed">
-            One-time direct {formattedBonus} reward credited straight to your wallet. (No multi-level cascade on sales).
-          </p>
         </div>
       </div>
 
