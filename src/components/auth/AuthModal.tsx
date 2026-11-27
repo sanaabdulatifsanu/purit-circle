@@ -134,7 +134,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#123C32] to-[#1B6B50] text-[#D5AE62] flex items-center justify-center font-black text-xl mx-auto shadow-md mb-2">
             PC
           </div>
-          <h2 className="text-lg font-bold text-[#123C32]">PURITY CIRCLE</h2>
+          <h2 className="text-lg font-bold text-[#123C32]">PURIT CIRCLE</h2>
           <p className="text-xs text-[#78847D] mt-0.5">Manager Referral & Rewards Platform</p>
         </div>
 

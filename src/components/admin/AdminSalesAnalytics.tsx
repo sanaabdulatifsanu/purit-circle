@@ -73,7 +73,7 @@ export const AdminSalesAnalytics: React.FC<AdminSalesAnalyticsProps> = ({ onTogg
               <TrendingUp className="w-6 h-6 text-[#1B6B50]" /> System-Wide Sales Analytics
             </h1>
             <p className="text-xs text-[#78847D] mt-1">
-              Aggregated metrics across all referred and mapped restaurant accounts in Purity Circle.
+              Aggregated metrics across all referred and mapped restaurant accounts in Purit Circle.
             </p>
           </div>
         </div>

@@ -66,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h1 className="font-bold text-base tracking-wide text-white flex items-center gap-1.5">
-                PURITY CIRCLE
+                PURIT CIRCLE
               </h1>
               <p className="text-[11px] text-[#D5AE62] font-medium tracking-wider uppercase">
                 {role === 'manager' ? 'Partner Network' : 'System Administration'}
@@ -171,7 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <span>Purity Engine v2.4 Live</span>
           </div>
           <p className="text-[10px] text-[#78847D] text-center">
-            Purity Circle © 2026. All rights reserved.
+            Purit Circle © 2026. All rights reserved.
           </p>
         </div>
       </aside>

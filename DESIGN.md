@@ -1,7 +1,7 @@
 ---
-name: Purity Circle Design System
+name: Purit Circle Design System
 version: 1.0.0
-description: Design tokens and specifications for Purity Circle referral, restaurant tracking, and rewards management platform.
+description: Design tokens and specifications for Purit Circle referral, restaurant tracking, and rewards management platform.
 colors:
   primary: "#123C32"       # Deep Emerald
   secondary: "#1B6B50"     # Forest Green
@@ -26,10 +26,10 @@ spacing:
   base: "4px"
 ---
 
-# Purity Circle Design System Specification
+# Purit Circle Design System Specification
 
 ## Overview
-Purity Circle is an enterprise-grade referral, restaurant tracking, and rewards management platform connecting managers, restaurants, and the core Purity brand. The visual aesthetic reflects trust, premium rewards, and modern operational efficiency.
+Purit Circle is an enterprise-grade referral, restaurant tracking, and rewards management platform connecting managers, restaurants, and the core Purity brand. The visual aesthetic reflects trust, premium rewards, and modern operational efficiency.
 
 ## Colors & Palette Application
 - **Deep Emerald (`#123C32`)**: Used for the primary sidebar, brand headers, primary call-to-actions, and active navigation items.

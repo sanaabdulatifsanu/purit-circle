@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         case 'earnings': return 'My Earnings';
         case 'notifications': return 'Notifications';
         case 'profile': return 'My Profile';
-        default: return 'Purity Circle';
+        default: return 'Purit Circle';
       }
     } else {
       switch (adminSubView) {

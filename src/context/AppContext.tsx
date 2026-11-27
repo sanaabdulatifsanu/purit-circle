@@ -670,7 +670,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return {
       success: true,
-      message: `Registration successful! Your unique referral code is ${newCode}. Welcome to Purity Circle.`
+      message: `Registration successful! Your unique referral code is ${newCode}. Welcome to Purit Circle.`
     };
   };
 

@@ -149,30 +149,8 @@ export const AuthenticationPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F7F5EF] flex flex-col justify-between selection:bg-[#D5AE62]/20 selection:text-[#123C32]">
       
-      {/* Top Navbar */}
-      <header className="px-6 py-4 border-b border-[#E2E9E3] bg-white flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#123C32] text-[#D5AE62] flex items-center justify-center font-black text-lg shadow-sm">
-            PC
-          </div>
-          <div>
-            <span className="font-bold text-base tracking-wide text-[#123C32] block">
-              PURITY CIRCLE
-            </span>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-[#1B6B50]">
-              Manager Referral & Rewards Platform
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs">
-          <span className="w-2 h-2 rounded-full bg-[#21865A] animate-pulse" />
-          <span className="text-[#1B6B50] font-medium hidden sm:inline">Purity Sync: Connected</span>
-        </div>
-      </header>
-
       {/* Main Centered Auth Card */}
-      <main className="flex-1 max-w-md w-full mx-auto p-4 sm:p-6 flex items-center justify-center my-6">
+      <main className="flex-1 max-w-md w-full mx-auto p-4 sm:p-6 flex items-center justify-center my-auto">
         <div className="w-full bg-white border border-[#E2E9E3] rounded-3xl p-6 sm:p-8 shadow-card">
           
           {/* Centered Brand Header */}
@@ -180,7 +158,7 @@ export const AuthenticationPage: React.FC = () => {
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#123C32] to-[#1B6B50] text-[#D5AE62] flex items-center justify-center font-black text-2xl mx-auto shadow-md mb-3">
               PC
             </div>
-            <h1 className="text-xl font-bold text-[#123C32]">PURITY CIRCLE</h1>
+            <h1 className="text-xl font-bold text-[#123C32]">PURIT CIRCLE</h1>
             <p className="text-xs text-[#78847D] mt-1">
               {activeTab === 'signin' ? 'Sign in to access your manager dashboard' : 'Create your manager referral account'}
             </p>
@@ -555,7 +533,7 @@ export const AuthenticationPage: React.FC = () => {
 
       {/* Footer with Discreet Admin Link */}
       <footer className="py-4 px-6 text-center text-xs text-[#78847D] border-t border-[#E2E9E3] bg-white flex items-center justify-between">
-        <span>Purity Circle © 2026 • Connected to Purity Core</span>
+        <span>Purit Circle © 2026 • Connected to Purity Core</span>
         <button 
           onClick={() => setShowAdminModal(true)}
           className="text-[11px] text-[#78847D] hover:text-[#123C32] flex items-center gap-1 font-medium hover:underline"
