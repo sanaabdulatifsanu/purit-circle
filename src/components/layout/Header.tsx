@@ -22,7 +22,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
     managerSubView,
     adminSubView,
     setManagerSubView,
-    setAdminSubView 
+    setAdminSubView,
+    setClaimsViewMode 
   } = useApp();
 
   const isRestaurantScreen = role === 'manager' && managerSubView === 'restaurants';

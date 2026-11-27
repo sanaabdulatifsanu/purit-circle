@@ -1,54 +1,37 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
   Store, 
   Search, 
-  MapPin,
-  Filter,
-  Check
+  CheckCircle2, 
+  XCircle, 
+  Link as LinkIcon, 
+  MapPin, 
+  X,
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
+import { RestaurantReferral } from '../../types';
 
 export const AdminReferredRestaurants: React.FC = () => {
-  const { restaurants } = useApp();
+  const { 
+    restaurants, 
+    approveRestaurant, 
+    rejectRestaurant, 
+    toggleRestaurantStatus 
+  } = useApp();
 
   const [search, setSearch] = useState('');
   const [tabFilter, setTabFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const mobileFilterRef = useRef<HTMLDivElement>(null);
+  
+  // Mapping modal state
+  const [mappingTarget, setMappingTarget] = useState<RestaurantReferral | null>(null);
+  const [purityCustomerId, setPurityCustomerId] = useState('');
 
-  useEffect(() => {
-    if (!isMobileFilterOpen) return;
-
-    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      if (mobileFilterRef.current && !mobileFilterRef.current.contains(event.target as Node)) {
-        setIsMobileFilterOpen(false);
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMobileFilterOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isMobileFilterOpen]);
-
-  const filterTabs = [
-    { id: 'all', label: `All (${restaurants.length})` },
-    { id: 'pending', label: `Pending Approvals (${restaurants.filter(r => r.status === 'pending').length})` },
-    { id: 'approved', label: 'Approved & Mapped' },
-    { id: 'rejected', label: 'Rejected' },
-  ] as const;
+  // Rejection modal state
+  const [rejectTarget, setRejectTarget] = useState<RestaurantReferral | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   const filtered = restaurants.filter(r => {
     const matchesSearch = r.restaurantName.toLowerCase().includes(search.toLowerCase()) ||
@@ -62,169 +45,331 @@ export const AdminReferredRestaurants: React.FC = () => {
     return matchesSearch && matchesTab;
   });
 
+  const handleApproveAndMap = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mappingTarget) return;
+
+    approveRestaurant(mappingTarget.id, purityCustomerId || mappingTarget.existingPurityCustomerId || 'PUR-MAN-1092');
+    setMappingTarget(null);
+    setPurityCustomerId('');
+  };
+
+  const handleReject = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rejectTarget) return;
+
+    rejectRestaurant(rejectTarget.id, rejectionReason || 'Duplicate or non-qualifying business.');
+    setRejectTarget(null);
+    setRejectionReason('');
+  };
+
   return (
     <div className="space-y-6">
       
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
-          <span className="hidden md:inline-flex shrink-0">
+      <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl p-6 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
             <Store className="w-6 h-6 text-[#1B6B50]" />
-          </span>
-          <span className="md:hidden">Referred Restaurants</span>
-          <span className="hidden md:inline">Referred Restaurants Directory &amp; Mapping</span>
-        </h1>
+            <span className="md:hidden">Referred Restaurants</span>
+            <span className="hidden md:inline">Referred Restaurants Directory & Mapping</span>
+          </h1>
+          <p className="text-xs text-[#78847D] mt-1">
+            Review manager submissions, verify duplicate records, and map approved restaurants to Purity Website IDs.
+          </p>
+        </div>
 
-        <div className="hidden md:flex items-center gap-2">
-          <span className="hidden md:inline-flex text-xs text-[#78847D] bg-[#FFFFFF] px-3 py-1.5 rounded-xl border border-[#E2E9E3] shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-[#78847D] bg-[#F7F5EF] px-3 py-1.5 rounded-xl border border-[#E2E9E3]">
             {restaurants.length} Total Referred Outlets
           </span>
         </div>
       </div>
 
-      {/* Unified Search/Filter & Table Card */}
-      <div className="rounded-2xl border border-[#E2E9E3] bg-white shadow-subtle">
-        {/* Search & Tabs */}
-        <div className="flex flex-row items-center justify-between gap-2 md:gap-3 px-4 py-3 border-b border-[#E2E9E3]">
-          {/* Search */}
-          <div className="relative flex-1 min-w-0">
-            <Search className="w-4 h-4 text-[#78847D] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text"
-              placeholder="Search restaurant or manager..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-1.5 text-xs rounded-lg border border-[#E2E9E3] focus:outline-none focus:border-[#123C32] bg-[#F7F5EF]/50"
-            />
-          </div>
-
-          {/* Mobile Filter Icon Dropdown */}
-          <div ref={mobileFilterRef} className="relative md:hidden shrink-0">
+      {/* Tabs & Search */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#E2E9E3] rounded-xl p-3 shadow-xs">
+        
+        {/* Tabs */}
+        <div className="flex items-center gap-1 bg-[#F7F5EF] p-1 rounded-lg border border-[#E2E9E3] text-xs">
+          {[
+            { id: 'all', label: `All (${restaurants.length})` },
+            { id: 'pending', label: `Pending Approvals (${restaurants.filter(r => r.status === 'pending').length})` },
+            { id: 'approved', label: 'Approved & Mapped' },
+            { id: 'rejected', label: 'Rejected' },
+          ].map(tab => (
             <button
-              type="button"
-              onClick={() => setIsMobileFilterOpen(prev => !prev)}
-              aria-haspopup="listbox"
-              aria-expanded={isMobileFilterOpen}
-              aria-label="Filter referred restaurants"
-              className={`w-8 h-8 flex items-center justify-center rounded-lg border transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#113D2E]/25 ${
-                tabFilter !== 'all'
-                  ? 'bg-[#113D2E] border-[#113D2E] text-[#FFFEFA] shadow-subtle'
-                  : isMobileFilterOpen
-                  ? 'bg-[#F7F5EF] border-[#113D2E]/40 text-[#113D2E] shadow-card'
-                  : 'bg-[#FFFEFA] hover:bg-[#F7F5EF] border-[#113D2E]/15 text-[#113D2E] shadow-subtle'
+              key={tab.id}
+              onClick={() => setTabFilter(tab.id as any)}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                tabFilter === tab.id 
+                  ? 'bg-[#123C32] text-white shadow-xs font-semibold' 
+                  : 'text-[#78847D] hover:text-[#123C32]'
               }`}
             >
-              <Filter className="w-4 h-4" />
+              {tab.label}
             </button>
-
-            <div
-              role="listbox"
-              aria-label="Filter referred restaurants"
-              aria-hidden={!isMobileFilterOpen}
-              className={`absolute right-0 mt-2 w-52 p-1.5 rounded-xl bg-[#FFFEFA] border border-[#113D2E]/15 shadow-elevated z-50 origin-top-right transition-all duration-150 ease-out ${
-                isMobileFilterOpen
-                  ? 'opacity-100 scale-100 translate-y-0 visible pointer-events-auto'
-                  : 'opacity-0 scale-95 -translate-y-1 invisible pointer-events-none'
-              }`}
-            >
-              <div className="space-y-0.5">
-                {filterTabs.map(tab => {
-                  const isSelected = tabFilter === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      tabIndex={isMobileFilterOpen ? 0 : -1}
-                      onClick={() => {
-                        setTabFilter(tab.id);
-                        setIsMobileFilterOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs text-left transition-colors duration-150 focus:outline-none ${
-                        isSelected
-                          ? 'bg-[#113D2E] text-[#FFFEFA] font-semibold shadow-subtle'
-                          : 'text-[#202B27] hover:bg-[#113D2E]/10 hover:text-[#113D2E] font-medium'
-                      }`}
-                    >
-                      <span className="truncate">{tab.label}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-[#FFFEFA] shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="hidden md:flex flex-wrap items-center gap-1 bg-[#F7F5EF] p-1 rounded-lg border border-[#E2E9E3] text-xs shrink-0">
-            {filterTabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setTabFilter(tab.id)}
-                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
-                  tabFilter === tab.id 
-                    ? 'bg-[#123C32] text-white shadow-xs font-semibold' 
-                    : 'text-[#78847D] hover:text-[#123C32]'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto rounded-b-2xl">
-          <table className="w-full min-w-[680px] table-fixed text-left text-xs">
+        {/* Search */}
+        <div className="relative">
+          <Search className="w-4 h-4 text-[#78847D] absolute left-3 top-1/2 -translate-y-1/2" />
+          <input 
+            type="text"
+            placeholder="Search restaurant or manager..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9 pr-4 py-1.5 text-xs rounded-lg border border-[#E2E9E3] focus:outline-none focus:border-[#123C32] w-full sm:w-64"
+          />
+        </div>
+      </div>
+
+      {/* Verification Notice Banner if pending items exist */}
+      {restaurants.filter(r => r.status === 'pending').length > 0 && tabFilter !== 'pending' && (
+        <div className="bg-[#D99A32]/10 border border-[#D99A32]/30 rounded-xl p-3 flex items-center justify-between text-xs text-[#123C32]">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-[#D99A32] shrink-0" />
+            <span>
+              <strong>{restaurants.filter(r => r.status === 'pending').length} restaurant leads</strong> require admin verification & mapping to official Purity IDs.
+            </span>
+          </div>
+          <button 
+            onClick={() => setTabFilter('pending')}
+            className="text-[11px] font-bold text-[#1B6B50] hover:underline shrink-0"
+          >
+            Review Pending →
+          </button>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl shadow-subtle overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-[#123C32]/5 border-b border-[#E2E9E3] text-[#78847D] text-[11px] font-semibold uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-[40%]">Restaurant Details</th>
-                <th className="py-3.5 px-4 w-[24%]">Referring Manager</th>
-                <th className="py-3.5 px-4 w-[16%] text-right">Lifetime Sales</th>
-                <th className="py-3.5 px-4 w-[20%] text-center">Status</th>
+              <tr className="bg-[#123C32]/5 border-b border-[#E2E9E3] text-[#78847D] text-[11px] font-semibold uppercase">
+                <th className="py-3 px-4">Restaurant Details</th>
+                <th className="py-3 px-4">Referring Manager</th>
+                <th className="py-3 px-4">Purity Customer ID</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4 text-right">Lifetime Sales</th>
+                <th className="py-3 px-4 text-center">Verification Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E9E3]">
               {filtered.map(rest => (
-                <tr key={rest.id} className="hover:bg-[#F7F5EF]/60 transition-colors">
-                  <td className="py-3.5 px-4">
+                <tr key={rest.id} className="hover:bg-[#F7F5EF] transition-colors">
+                  <td className="py-3 px-4">
                     <div className="font-bold text-[#123C32]">{rest.restaurantName}</div>
                     <div className="text-[11px] text-[#78847D] flex items-center gap-1 mt-0.5">
                       <MapPin className="w-3 h-3 text-[#1B6B50] shrink-0" />
-                      <span className="truncate">{rest.address}, {rest.city}</span>
+                      <span>{rest.address}, {rest.city}</span>
                     </div>
-                    <div className="text-[10px] text-[#78847D] truncate">
-                      {rest.mobile}
+                    <div className="text-[10px] text-[#78847D] mt-0.5">
+                      Contact: {rest.contactPerson} ({rest.mobile}) • Submitted {rest.submissionDate}
                     </div>
                   </td>
 
-                  <td className="py-3.5 px-4">
-                    <span className="font-semibold text-[#123C32] block truncate">{rest.managerName}</span>
+                  <td className="py-3 px-4">
+                    <span className="font-semibold text-[#123C32] block">{rest.managerName}</span>
+                    <span className="text-[10px] font-mono text-[#1B6B50] font-semibold bg-[#1B6B50]/10 px-1.5 py-0.5 rounded">
+                      Code: {rest.managerReferralCode || 'A1001'}
+                    </span>
                   </td>
 
-                  <td className="py-3.5 px-4 text-right font-bold text-[#123C32]">
-                    ₹{rest.totalSales.toLocaleString('en-IN')}
+                  <td className="py-3 px-4">
+                    {rest.mappedPurityId ? (
+                      <span className="font-mono font-semibold text-[#123C32] bg-[#123C32]/5 px-2 py-0.5 rounded text-[11px] inline-flex items-center gap-1">
+                        <LinkIcon className="w-3 h-3 text-[#1B6B50]" />
+                        {rest.mappedPurityId}
+                      </span>
+                    ) : (
+                      <span className="text-[#D99A32] italic font-medium">Unmapped</span>
+                    )}
                   </td>
 
-                  <td className="py-3.5 px-4 text-center">
+                  <td className="py-3 px-4">
                     <Badge status={rest.status} size="sm" />
+                    {rest.status === 'rejected' && rest.rejectionReason && (
+                      <span className="text-[10px] text-[#D9534F] block mt-0.5 truncate max-w-xs">
+                        {rest.rejectionReason}
+                      </span>
+                    )}
+                  </td>
+
+                  <td className="py-3 px-4 text-right">
+                    <div className="font-bold text-[#123C32]">₹{rest.totalSales.toLocaleString('en-IN')}</div>
+                    {rest.status === 'active' && (
+                      <span className="text-[10px] text-[#21865A] font-medium block">Active Sales Sync</span>
+                    )}
+                  </td>
+
+                  <td className="py-3 px-4 text-center">
+                    {rest.status === 'pending' ? (
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => {
+                            setMappingTarget(rest);
+                            setPurityCustomerId(rest.existingPurityCustomerId || '');
+                          }}
+                          className="px-2.5 py-1 rounded bg-[#21865A] hover:bg-[#1B6B50] text-white font-semibold text-[11px] flex items-center gap-1 shadow-xs transition-colors"
+                          title="Verify lead and map to official Purity Customer Account"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Approve &amp; Map
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRejectTarget(rest);
+                            setRejectionReason('');
+                          }}
+                          className="p-1 rounded bg-[#D9534F]/10 hover:bg-[#D9534F]/20 text-[#D9534F] text-[11px] transition-colors"
+                          title="Reject duplicate or invalid referral"
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : rest.status === 'active' || rest.status === 'inactive' ? (
+                      <div className="flex items-center justify-center gap-2">
+                        {!rest.mappedPurityId && (
+                          <button
+                            onClick={() => {
+                              setMappingTarget(rest);
+                              setPurityCustomerId(rest.existingPurityCustomerId || '');
+                            }}
+                            className="text-[11px] text-[#1B6B50] hover:underline font-semibold flex items-center gap-1"
+                          >
+                            <LinkIcon className="w-3 h-3" /> Map to Core
+                          </button>
+                        )}
+                        <button
+                          onClick={() => toggleRestaurantStatus(rest.id)}
+                          className="text-[11px] text-[#78847D] hover:text-[#123C32] flex items-center gap-1"
+                          title="Toggle active / suspended order sync"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          {rest.status === 'active' ? 'Suspend' : 'Activate'}
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-[#78847D] italic">Archived</span>
+                    )}
                   </td>
                 </tr>
               ))}
-
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-[#78847D]">
-                    <p className="font-medium text-sm">No referred restaurants found</p>
-                    <p className="text-xs mt-1">Try adjusting your search query or filter selection.</p>
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* APPROVAL & PURITY MAPPING MODAL (PRD Section 7 & 8) */}
+      {mappingTarget && (
+        <div className="fixed inset-0 z-50 bg-[#202B27]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl max-w-md w-full p-6 shadow-elevated relative">
+            <button 
+              onClick={() => setMappingTarget(null)}
+              className="absolute top-4 right-4 p-1.5 text-[#78847D] hover:text-[#123C32] rounded-lg hover:bg-[#F7F5EF]"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-base font-bold text-[#123C32] mb-1">
+              Approve &amp; Map to Purity Core
+            </h3>
+            <p className="text-xs text-[#78847D] mb-4">
+              Connecting <span className="font-bold text-[#123C32]">{mappingTarget.restaurantName}</span> with official Purity Customer Account.
+            </p>
+
+            <form onSubmit={handleApproveAndMap} className="space-y-4 text-xs">
+              <div>
+                <label className="font-semibold text-[#202B27] block mb-1">
+                  Purity Customer ID / External Key:
+                </label>
+                <input 
+                  type="text"
+                  required
+                  placeholder="e.g. PUR-BLR-0492"
+                  value={purityCustomerId}
+                  onChange={e => setPurityCustomerId(e.target.value.toUpperCase())}
+                  className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono"
+                />
+                <span className="text-[10px] text-[#78847D] mt-1 block">
+                  Once mapped, incoming orders for this Customer ID will attribute rewards to {mappingTarget.managerName}.
+                </span>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E9E3]">
+                <button 
+                  type="button" 
+                  onClick={() => setMappingTarget(null)}
+                  className="btn-secondary text-xs"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn-primary text-xs"
+                >
+                  Confirm Approval &amp; Mapping
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* REJECTION MODAL */}
+      {rejectTarget && (
+        <div className="fixed inset-0 z-50 bg-[#202B27]/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl max-w-md w-full p-6 shadow-elevated relative">
+            <button 
+              onClick={() => setRejectTarget(null)}
+              className="absolute top-4 right-4 p-1.5 text-[#78847D] hover:text-[#123C32] rounded-lg hover:bg-[#F7F5EF]"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-base font-bold text-[#D9534F] mb-1">
+              Decline Restaurant Referral
+            </h3>
+            <p className="text-xs text-[#78847D] mb-4">
+              State the reason for rejecting <span className="font-bold text-[#123C32]">{rejectTarget.restaurantName}</span>.
+            </p>
+
+            <form onSubmit={handleReject} className="space-y-4 text-xs">
+              <div>
+                <label className="font-semibold text-[#202B27] block mb-1">
+                  Rejection Reason:
+                </label>
+                <textarea 
+                  required
+                  rows={3}
+                  placeholder="e.g. Duplicate registration detected; direct corporate account already established."
+                  value={rejectionReason}
+                  onChange={e => setRejectionReason(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E9E3]">
+                <button 
+                  type="button" 
+                  onClick={() => setRejectTarget(null)}
+                  className="btn-secondary text-xs"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="bg-[#D9534F] text-white font-semibold px-4 py-2 rounded-lg hover:bg-[#c94541] transition-colors"
+                >
+                  Decline Lead
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

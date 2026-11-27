@@ -1,9 +1,12 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Sparkles, Users, CheckCircle2, Clock, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Sparkles, CheckCircle2, Clock } from 'lucide-react';
 
 export const AdminReferralRewards: React.FC = () => {
-  const { allManagers } = useApp();
+  const { allManagers, directReferralBonus, directReferralThreshold } = useApp();
+
+  const formattedBonus = `₹${directReferralBonus.toLocaleString('en-IN')}`;
+  const formattedThreshold = `₹${directReferralThreshold.toLocaleString('en-IN')}`;
 
   return (
     <div className="space-y-6">
@@ -12,15 +15,15 @@ export const AdminReferralRewards: React.FC = () => {
       <div className="bg-[#FFFFFF] border border-[#E2E9E3] rounded-2xl p-6 shadow-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-[#123C32] flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-[#D5AE62]" /> ₹2,000 Direct Referral Rewards Ledger
+            <Sparkles className="w-6 h-6 text-[#D5AE62]" /> {formattedBonus} Direct Referral Rewards Ledger
           </h1>
           <p className="text-xs text-[#78847D] mt-1">
-            Governing the one-time ₹2,000 direct manager referral incentives and qualifying sales conditions (PRD Section 11).
+            Governing the one-time {formattedBonus} direct manager referral incentives and qualifying sales conditions (PRD Section 11).
           </p>
         </div>
 
         <div className="bg-[#D5AE62]/20 border border-[#D5AE62]/40 text-[#123C32] px-3.5 py-1.5 rounded-xl text-xs font-bold">
-          Configured Rule: ₹2,000 / Qualifying Event
+          Configured Rule: {formattedBonus} / Qualifying Event
         </div>
       </div>
 
@@ -30,7 +33,7 @@ export const AdminReferralRewards: React.FC = () => {
           Direct Attribution Governance Rules
         </h3>
         <p className="text-xs text-[#78847D] leading-relaxed">
-          • When Manager A refers Manager B, and Manager B's referred restaurant generates qualifying sales (&gt; ₹25,000), Manager A receives ₹2,000 once.<br />
+          • When Manager A refers Manager B, and Manager B's referred restaurant generates qualifying sales (&gt; {formattedThreshold}), Manager A receives {formattedBonus} once.<br />
           • Higher-level managers (uplines) <strong className="text-[#123C32]">do not</strong> receive additional referral bonuses.<br />
           • Manager A <strong className="text-[#123C32]">does not</strong> earn recurring sales commission from Manager B's restaurants (Strict Non-MLM boundary).
         </p>
@@ -41,7 +44,7 @@ export const AdminReferralRewards: React.FC = () => {
         <div className="p-4 border-b border-[#E2E9E3] flex items-center justify-between bg-[#F7F5EF]/50">
           <div>
             <h3 className="text-sm font-bold text-[#123C32]">Direct Manager Referral Relationships</h3>
-            <p className="text-xs text-[#78847D]">Audit of qualifying restaurant sales and ₹2,000 credit logs</p>
+            <p className="text-xs text-[#78847D]">Audit of qualifying restaurant sales and {formattedBonus} credit logs</p>
           </div>
           <span className="text-xs font-semibold text-[#1B6B50]">{allManagers.length} Total Nodes</span>
         </div>
@@ -54,12 +57,12 @@ export const AdminReferralRewards: React.FC = () => {
                 <th className="py-3 px-4">Referring Manager (Upline)</th>
                 <th className="py-3 px-4">Referred Restaurants</th>
                 <th className="py-3 px-4 text-right">Qualifying Sales Total</th>
-                <th className="py-3 px-4 text-center">₹2,000 Event Status</th>
+                <th className="py-3 px-4 text-center">{formattedBonus} Event Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E9E3]">
               {allManagers.filter(m => m.referredByCode).map(mgr => {
-                const isCredited = mgr.totalSalesGenerated >= 25000;
+                const isCredited = mgr.totalSalesGenerated >= directReferralThreshold;
                 return (
                   <tr key={mgr.id} className="hover:bg-[#F7F5EF] transition-colors">
                     <td className="py-3 px-4">
@@ -83,11 +86,11 @@ export const AdminReferralRewards: React.FC = () => {
                     <td className="py-3 px-4 text-center">
                       {isCredited ? (
                         <span className="inline-flex items-center gap-1 bg-[#21865A]/10 text-[#21865A] border border-[#21865A]/30 px-2.5 py-0.5 rounded-full font-bold text-[11px]">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> ₹2,000 Credited to {mgr.referredByName}
+                          <CheckCircle2 className="w-3.5 h-3.5" /> {formattedBonus} Credited to {mgr.referredByName}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 bg-[#D99A32]/10 text-[#D99A32] border border-[#D99A32]/30 px-2.5 py-0.5 rounded-full font-medium text-[11px]">
-                          <Clock className="w-3.5 h-3.5" /> In Progress (&lt; ₹25,000 threshold)
+                          <Clock className="w-3.5 h-3.5" /> In Progress (&lt; {formattedThreshold} threshold)
                         </span>
                       )}
                     </td>

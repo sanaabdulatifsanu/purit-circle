@@ -37,6 +37,8 @@ interface AppContextType {
   setIsAddRestaurantModalOpen: (open: boolean) => void;
   adminSubView: AdminSubView;
   setAdminSubView: (view: AdminSubView) => void;
+  claimsViewMode: 'table' | 'pending-view';
+  setClaimsViewMode: (mode: 'table' | 'pending-view') => void;
   
   // Data
   currentManager: Manager;
@@ -51,8 +53,8 @@ interface AppContextType {
   
   // Actions
   addRestaurantReferral: (data: Partial<RestaurantReferral>) => { success: boolean; message: string };
-  approveRestaurant: (id: string, mappedPurityId: string) => void;
-  rejectRestaurant: (id: string, reason: string) => void;
+  approveRestaurant: (id: string, mappedPurityId?: string) => void;
+  rejectRestaurant: (id: string, reason?: string) => void;
   toggleRestaurantStatus: (id: string) => void;
   submitRewardClaim: (rewardId: string, notes?: string) => { success: boolean; message: string };
   updateClaimStatus: (claimId: string, status: RewardClaim['status'], notes?: string, payoutRef?: string) => void;
@@ -60,6 +62,14 @@ interface AppContextType {
   updateManagerCommission: (managerId: string, commissionRate: number) => void;
   updateManagerPassword: (managerId: string, newPassword: string) => { success: boolean; message: string };
   markNotificationRead: (id: string) => void;
+  adminPasscode: string;
+  updateAdminPasscode: (code: string) => void;
+  defaultCommissionRate: number;
+  minRedemptionThreshold: number | null;
+  updateGlobalCommissionSettings: (rate: number, minThreshold: number | null, overwriteCustomRates: boolean) => void;
+  directReferralBonus: number;
+  directReferralThreshold: number;
+  updateDirectReferralSettings: (bonus: number, threshold: number) => void;
   verifyAdminCode: (code: string) => boolean;
   registerManager: (data: { name: string; mobile: string; referralCode: string; password?: string }) => { success: boolean; message: string };
 }
@@ -72,16 +82,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [managerSubView, setManagerSubView] = useState<ManagerSubView>('overview');
   const [isAddRestaurantModalOpen, setIsAddRestaurantModalOpen] = useState<boolean>(false);
   const [adminSubView, setAdminSubView] = useState<AdminSubView>('overview');
+  const [claimsViewMode, setClaimsViewMode] = useState<'table' | 'pending-view'>('table');
   
   const [currentManager, setCurrentManager] = useState<Manager>(CURRENT_MANAGER);
   const [allManagers, setAllManagers] = useState<Manager[]>(ALL_MANAGERS);
   const [restaurants, setRestaurants] = useState<RestaurantReferral[]>(INITIAL_RESTAURANTS);
-  const [salesTransactions] = useState<SalesTransaction[]>(SALES_TRANSACTIONS);
+  const [salesTransactions, setSalesTransactions] = useState<SalesTransaction[]>(SALES_TRANSACTIONS);
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>(WALLET_TRANSACTIONS);
   const [rewardItems] = useState<RewardItem[]>(REWARD_ITEMS);
   const [rewardClaims, setRewardClaims] = useState<RewardClaim[]>(REWARD_CLAIMS);
   const [notifications, setNotifications] = useState<NotificationItem[]>(NOTIFICATIONS);
   const [rewardRules] = useState<RewardRuleConfig[]>(REWARD_RULES);
+  const [adminPasscode, setAdminPasscode] = useState<string>('risasi123');
+  const [defaultCommissionRate, setDefaultCommissionRate] = useState<number>(10);
+  const [minRedemptionThreshold, setMinRedemptionThreshold] = useState<number | null>(null);
+  const [directReferralBonus, setDirectReferralBonus] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('purit_direct_referral_bonus');
+      return saved !== null && !isNaN(parseFloat(saved)) ? Math.max(0, parseFloat(saved)) : 2000;
+    } catch {
+      return 2000;
+    }
+  });
+  const [directReferralThreshold, setDirectReferralThreshold] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('purit_direct_referral_threshold');
+      return saved !== null && !isNaN(parseFloat(saved)) ? Math.max(0, parseFloat(saved)) : 25000;
+    } catch {
+      return 25000;
+    }
+  });
 
   // Add restaurant referral with duplicate check
   const addRestaurantReferral = (data: Partial<RestaurantReferral>): { success: boolean; message: string } => {
@@ -114,6 +144,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `rest_${Date.now()}`,
       managerId: currentManager.id,
       managerName: currentManager.name,
+      managerReferralCode: currentManager.referralCode,
       restaurantName: data.restaurantName || 'Unnamed Outlet',
       ownerName: data.ownerName || '',
       contactPerson: data.contactPerson || '',
@@ -139,15 +170,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       referredRestaurantsCount: prev.referredRestaurantsCount + 1
     }));
 
-    // Notify Admin
+    // Notify Admin with full restaurant & referring manager details
     const adminAlert: NotificationItem = {
       id: `notif_adm_${Date.now()}`,
       recipientRole: 'admin',
-      title: 'New Restaurant Referral Submitted',
-      message: `${currentManager.name} submitted "${newRestaurant.restaurantName}" (${newRestaurant.city}). Please verify and map.`,
-      type: 'info',
+      title: 'Restaurant Verification Request',
+      message: `${currentManager.name} (${currentManager.referralCode}) submitted "${newRestaurant.restaurantName}" in ${newRestaurant.city}. Verification required.`,
+      type: 'warning',
       timestamp: 'Just now',
       isRead: false,
+      restaurantId: newRestaurant.id,
+      verificationData: {
+        restaurantName: newRestaurant.restaurantName,
+        ownerName: newRestaurant.ownerName || 'Not Provided',
+        contactPerson: newRestaurant.contactPerson || newRestaurant.ownerName || 'Not Provided',
+        phone: newRestaurant.mobile,
+        email: newRestaurant.email || 'N/A',
+        address: newRestaurant.address || 'N/A',
+        city: newRestaurant.city,
+        state: newRestaurant.state || 'Karnataka',
+        pinCode: newRestaurant.pinCode || 'N/A',
+        gstNumber: newRestaurant.gstNumber || 'Not Provided',
+        category: newRestaurant.category,
+        remarks: newRestaurant.remarks,
+        managerName: currentManager.name,
+        managerReferralCode: currentManager.referralCode,
+      }
     };
     setNotifications(prev => [adminAlert, ...prev]);
 
@@ -157,45 +205,128 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   };
 
-  // Admin approves restaurant and maps Purity customer ID
-  const approveRestaurant = (id: string, mappedPurityId: string) => {
+  // Admin approves restaurant, maps Purity customer ID, links sales, and updates counts
+  const approveRestaurant = (id: string, mappedPurityId?: string) => {
+    const target = restaurants.find(r => r.id === id);
+    if (!target) return;
+
+    const finalMappedId = mappedPurityId || target.existingPurityCustomerId || `PUR-BLR-${Math.floor(1000 + Math.random() * 9000)}`;
+    const initialOrderAmount = target.totalSales > 0 ? target.totalSales : 34500;
+    const initialRewardAmount = target.totalRewardsGenerated > 0 ? target.totalRewardsGenerated : 3450;
+
+    // 1. Update restaurant to active with mapped ID and initial linked sales
     setRestaurants(prev => prev.map(r => {
       if (r.id === id) {
         return {
           ...r,
           status: 'active',
-          mappedPurityId: mappedPurityId || `PUR-GEN-${Math.floor(1000 + Math.random() * 9000)}`,
+          mappedPurityId: finalMappedId,
           mappedDate: new Date().toISOString().split('T')[0],
+          monthlySales: r.monthlySales > 0 ? r.monthlySales : initialOrderAmount,
+          totalSales: r.totalSales > 0 ? r.totalSales : initialOrderAmount,
+          totalRewardsGenerated: r.totalRewardsGenerated > 0 ? r.totalRewardsGenerated : initialRewardAmount,
         };
       }
       return r;
     }));
 
-    const target = restaurants.find(r => r.id === id);
-    if (target) {
-      // Notify Manager
-      const mgrNotif: NotificationItem = {
-        id: `notif_mgr_${Date.now()}`,
-        recipientRole: 'manager',
+    // 2. Add linked sales transaction if not already present
+    const existingTx = salesTransactions.find(tx => tx.restaurantId === id);
+    if (!existingTx) {
+      const initialSale: SalesTransaction = {
+        id: `TX-PUR-${Math.floor(100000 + Math.random() * 900000)}`,
+        restaurantId: target.id,
+        restaurantName: target.restaurantName,
         managerId: target.managerId,
-        title: 'Restaurant Approved & Mapped!',
-        message: `Your referral "${target.restaurantName}" has been approved by Admin and mapped to Purity ID ${mappedPurityId}. Sales sync is now active.`,
-        type: 'success',
-        timestamp: 'Just now',
-        isRead: false,
+        managerName: target.managerName,
+        date: new Date().toISOString().split('T')[0],
+        amount: initialOrderAmount,
+        rewardAmount: initialRewardAmount,
+        status: 'synced',
+        items: [
+          {
+            productId: 'prod_001',
+            productName: 'Purity Soft Table Napkins (Case of 24)',
+            category: 'Paper Products',
+            unitsSold: 25,
+            unitPrice: 580,
+            totalAmount: 14500,
+          },
+          {
+            productId: 'prod_002',
+            productName: 'Purity Anti-Bacterial Hand Wash 5L',
+            category: 'Cleaning & Hygiene',
+            unitsSold: 20,
+            unitPrice: 1000,
+            totalAmount: 20000,
+          }
+        ]
       };
-      setNotifications(prev => [mgrNotif, ...prev]);
+      setSalesTransactions(prev => [initialSale, ...prev]);
+
+      // Record wallet transaction for sales reward credit
+      const newWalletTx: WalletTransaction = {
+        id: `WLT-TX-${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        type: 'CREDIT',
+        category: 'SALES_REWARD',
+        amount: initialRewardAmount,
+        description: `10% reward on synced sales for ${target.restaurantName}`,
+        referenceId: initialSale.id,
+        balanceAfter: currentManager.walletBalance + initialRewardAmount,
+        status: 'completed',
+      };
+      setWalletTransactions(prev => [newWalletTx, ...prev]);
     }
+
+    // 3. Update manager's sales & wallet stats
+    setCurrentManager(prev => {
+      if (prev.id === target.managerId) {
+        return {
+          ...prev,
+          totalSalesGenerated: prev.totalSalesGenerated + initialOrderAmount,
+          totalRewardsEarned: prev.totalRewardsEarned + initialRewardAmount,
+          walletBalance: prev.walletBalance + initialRewardAmount
+        };
+      }
+      return prev;
+    });
+
+    setAllManagers(prev => prev.map(m => {
+      if (m.id === target.managerId) {
+        return {
+          ...m,
+          totalSalesGenerated: m.totalSalesGenerated + initialOrderAmount,
+          totalRewardsEarned: m.totalRewardsEarned + initialRewardAmount,
+          walletBalance: m.walletBalance + initialRewardAmount
+        };
+      }
+      return m;
+    }));
+
+    // 4. Notify Manager
+    const mgrNotif: NotificationItem = {
+      id: `notif_mgr_${Date.now()}`,
+      recipientRole: 'manager',
+      managerId: target.managerId,
+      title: 'Restaurant Approved & Mapped!',
+      message: `Your referral "${target.restaurantName}" has been approved by Admin and mapped to Purity ID ${finalMappedId}. Sales sync is active with ₹${initialOrderAmount.toLocaleString('en-IN')} verified orders.`,
+      type: 'success',
+      timestamp: 'Just now',
+      isRead: false,
+    };
+    setNotifications(prev => [mgrNotif, ...prev]);
   };
 
   // Admin rejects restaurant
-  const rejectRestaurant = (id: string, reason: string) => {
+  const rejectRestaurant = (id: string, reason?: string) => {
+    const rejectionReason = reason || 'Not meeting eligibility criteria or duplicate outlet.';
     setRestaurants(prev => prev.map(r => {
       if (r.id === id) {
         return {
           ...r,
           status: 'rejected',
-          rejectionReason: reason || 'Not meeting eligibility criteria or duplicate outlet.'
+          rejectionReason: rejectionReason
         };
       }
       return r;
@@ -208,7 +339,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         recipientRole: 'manager',
         managerId: target.managerId,
         title: 'Restaurant Referral Declined',
-        message: `Your referral for "${target.restaurantName}" was not approved: ${reason}`,
+        message: `Your referral for "${target.restaurantName}" was not approved: ${rejectionReason}`,
         type: 'error',
         timestamp: 'Just now',
         isRead: false,
@@ -242,7 +373,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const newClaimId = `CLM-2026-${Math.floor(200 + Math.random() * 800)}`;
 
-    // Create claim
+    // Create claim with pre- and post-redemption balances
+    const currentBal = currentManager.walletBalance;
+    const updatedBalance = currentBal - item.requiredBalance;
+
     const newClaim: RewardClaim = {
       id: newClaimId,
       managerId: currentManager.id,
@@ -255,10 +389,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       claimedDate: new Date().toISOString().split('T')[0],
       status: 'pending',
       notes: notes || 'Standard redemption request.',
+      preRedemptionBalance: currentBal,
+      postRedemptionBalance: updatedBalance,
     };
 
     // Deduct / reserve available balance
-    const updatedBalance = currentManager.walletBalance - item.requiredBalance;
     setCurrentManager(prev => ({
       ...prev,
       walletBalance: updatedBalance
@@ -455,9 +590,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
   };
 
+  const updateAdminPasscode = (code: string) => {
+    const trimmed = code.trim();
+    if (trimmed) {
+      setAdminPasscode(trimmed);
+    }
+  };
+
+  const updateGlobalCommissionSettings = (
+    rate: number,
+    minThreshold: number | null,
+    overwriteCustomRates: boolean
+  ) => {
+    setDefaultCommissionRate(rate);
+    setMinRedemptionThreshold(minThreshold);
+
+    if (overwriteCustomRates) {
+      setAllManagers(prev =>
+        prev.map(m => ({ ...m, customCommissionRate: undefined }))
+      );
+      setCurrentManager(prev => ({ ...prev, customCommissionRate: undefined }));
+    }
+  };
+
+  const updateDirectReferralSettings = (bonus: number, threshold: number) => {
+    setDirectReferralBonus(bonus);
+    setDirectReferralThreshold(threshold);
+    try {
+      localStorage.setItem('purit_direct_referral_bonus', String(bonus));
+      localStorage.setItem('purit_direct_referral_threshold', String(threshold));
+    } catch (e) {
+      console.warn('Unable to persist referral settings to localStorage:', e);
+    }
+  };
+
   // Secure Admin Access Code Verification
   const verifyAdminCode = (code: string): boolean => {
-    return code === 'risasi123';
+    return code === adminPasscode;
   };
 
   // Register Manager
@@ -519,17 +688,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const loginAsAdmin = (code: string) => {
-    if (code.trim() === 'risasi123') {
+    if (code.trim() === adminPasscode) {
       setRole('admin');
       setIsAuthenticated(true);
       setAdminSubView('overview');
       return { success: true, message: 'Admin authentication successful!' };
     }
-    return { success: false, message: 'Invalid Admin Access Code. Enter risasi123 to unlock.' };
+    return { success: false, message: 'Invalid Admin Access Code. Enter the active admin passcode to unlock.' };
   };
 
   const logout = () => {
     setIsAuthenticated(false);
+    setClaimsViewMode('table');
   };
 
   return (
@@ -546,6 +716,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setIsAddRestaurantModalOpen,
       adminSubView,
       setAdminSubView,
+      claimsViewMode,
+      setClaimsViewMode,
       currentManager,
       allManagers,
       restaurants,
@@ -565,6 +737,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateManagerCommission,
       updateManagerPassword,
       markNotificationRead,
+      adminPasscode,
+      updateAdminPasscode,
+      defaultCommissionRate,
+      minRedemptionThreshold,
+      updateGlobalCommissionSettings,
+      directReferralBonus,
+      directReferralThreshold,
+      updateDirectReferralSettings,
       verifyAdminCode,
       registerManager,
     }}>

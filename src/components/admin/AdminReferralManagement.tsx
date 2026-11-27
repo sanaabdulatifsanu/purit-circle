@@ -10,6 +10,7 @@ import { FilterSelect } from '../common/FilterSelect';
 import { Badge } from '../common/Badge';
 import { Manager } from '../../types';
 
+
 interface ReferrerGroup {
   referrerCode: string;
   referrerName: string;
@@ -120,6 +121,7 @@ export const AdminReferralManagement: React.FC<AdminReferralManagementProps> = (
       .filter(group => group.referredManagers.length > 0);
   }, [groupedReferrals, search, statusFilter, restaurants]);
 
+
   return (
     <div className="rounded-2xl border border-[#E2E9E3] bg-white overflow-hidden shadow-subtle">
       {/* Search Bar & Status Filter Header */}
@@ -150,6 +152,7 @@ export const AdminReferralManagement: React.FC<AdminReferralManagementProps> = (
         />
       </div>
 
+
       {/* Table View */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
@@ -170,6 +173,7 @@ export const AdminReferralManagement: React.FC<AdminReferralManagementProps> = (
                     <span className="text-sm font-semibold text-[#123C32]">No referral records found</span>
                     <span className="text-xs text-[#78847D]">
                       Try adjusting your search terms or filter selection.
+
                     </span>
                   </div>
                 </td>

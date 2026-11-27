@@ -31,7 +31,8 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onToggleSidebar })
     restaurants, 
     salesTransactions, 
     rewardClaims, 
-    setAdminSubView 
+    setAdminSubView,
+    setClaimsViewMode 
   } = useApp();
 
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -177,11 +178,11 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onToggleSidebar })
 
         <div className="purity-card p-4 hover:border-[#1B6B50] transition-colors">
           <div className="flex items-center justify-between text-[#78847D] mb-1">
-            <span className="text-[11px] font-medium">Referred Restaurants</span>
+            <span className="text-[11px] font-medium">Active Restaurants</span>
             <Store className="w-3.5 h-3.5 text-[#1B6B50]" />
           </div>
-          <div className="text-2xl font-bold text-[#123C32]">{restaurants.length}</div>
-          <span className="text-[10px] text-[#78847D] mt-1 block">{activeRestaurants.length} active mapped</span>
+          <div className="text-2xl font-bold text-[#123C32]">{activeRestaurants.length}</div>
+          <span className="text-[10px] text-[#21865A] mt-1 block font-medium">{restaurants.length} Total Recorded ({activeRestaurants.length} Active)</span>
         </div>
 
         <div className="purity-card p-4 hover:border-[#D99A32] transition-colors">
@@ -190,7 +191,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onToggleSidebar })
             <Clock className="w-3.5 h-3.5 text-[#D99A32]" />
           </div>
           <div className="text-2xl font-bold text-[#D99A32]">{pendingApprovals.length}</div>
-          <span className="text-[10px] text-[#D99A32] mt-1 block">Awaiting customer mapping</span>
+          <span className="text-[10px] text-[#D99A32] mt-1 block font-medium">Awaiting admin verification</span>
         </div>
 
         <div className="hidden md:block purity-card p-4 hover:border-[#D5AE62] transition-colors">
@@ -275,7 +276,10 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onToggleSidebar })
               <p className="hidden md:block text-xs text-[#78847D]">Manager redemption requests awaiting approval</p>
             </div>
             <button 
-              onClick={() => setAdminSubView('claims')}
+              onClick={() => {
+                setClaimsViewMode('pending-view');
+                setAdminSubView('claims');
+              }}
               className="text-xs font-semibold text-[#1B6B50] hover:underline"
             >
               View Claims ({pendingClaims.length}) →
@@ -300,7 +304,10 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({ onToggleSidebar })
                   </div>
 
                   <button 
-                    onClick={() => setAdminSubView('claims')}
+                    onClick={() => {
+                      setClaimsViewMode('pending-view');
+                      setAdminSubView('claims');
+                    }}
                     className="btn-accent text-xs py-1 px-3"
                   >
                     Process Claim

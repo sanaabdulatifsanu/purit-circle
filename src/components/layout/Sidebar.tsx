@@ -21,6 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     setManagerSubView, 
     adminSubView, 
     setAdminSubView,
+    setClaimsViewMode,
     currentManager 
   } = useApp();
 
@@ -38,7 +39,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { id: 'managers', label: 'Managers' },
     { id: 'restaurants', label: 'Restaurants' },
     { id: 'rewards-claims', label: 'Rewards & Claims' },
-    { id: 'payouts-reports', label: 'Payouts & Reports' },
     { id: 'notifications', label: 'Notifications' },
     { id: 'settings', label: 'Settings' },
   ];
@@ -124,13 +124,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               const isActive = 
                 (item.id === 'managers' && (adminSubView === 'managers' || adminSubView === 'referrals')) ||
                 (item.id === 'rewards-claims' && (adminSubView === 'rewards-claims' || adminSubView === 'reward-config' || adminSubView === 'referral-rewards' || adminSubView === 'wallet' || adminSubView === 'claims')) ||
-                (item.id === 'payouts-reports' && (adminSubView === 'payouts-reports' || adminSubView === 'payouts' || adminSubView === 'reports')) ||
                 adminSubView === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => {
                     setAdminSubView(item.id);
+                    if (item.id === 'rewards-claims') {
+                      setClaimsViewMode('table');
+                    }
                     onClose();
                   }}
                   className={`

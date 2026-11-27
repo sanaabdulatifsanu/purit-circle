@@ -15,6 +15,7 @@ export const ManagerOverview: React.FC = () => {
   const { 
     currentManager, 
     restaurants, 
+
     allManagers,
     setManagerSubView,
     setIsAddRestaurantModalOpen 
@@ -29,6 +30,7 @@ export const ManagerOverview: React.FC = () => {
   const userReferredPeople = allManagers.filter(
     m => m.referredByCode?.toUpperCase() === currentManager.referralCode?.toUpperCase()
   );
+
 
   // If newly registered manager has no records yet, provide rich demonstration records
   // demonstrating Active restaurant, Inactive restaurant, and Referred Person with ₹2,000 bonus
@@ -233,6 +235,7 @@ export const ManagerOverview: React.FC = () => {
           <span>Add Restaurant</span>
         </button>
         
+
         <button 
           onClick={() => setManagerSubView('claim')}
           className="btn-accent text-xs flex items-center justify-center gap-1.5 py-2.5 px-3 sm:px-4 shadow-xs w-full sm:w-auto"
@@ -240,6 +243,7 @@ export const ManagerOverview: React.FC = () => {
           <Gift className="w-4 h-4 text-[#123C32] shrink-0" />
           <span>Claim Rewards</span>
         </button>
+
       </div>
 
       {/* SINGLE UNIFIED TABLE (Referred Restaurants & Referred People) */}
@@ -286,6 +290,7 @@ export const ManagerOverview: React.FC = () => {
           </div>
         </div>
 
+
         {/* Responsive Table */}
         <div className="overflow-x-auto -mx-4 sm:mx-0">
           <table className="w-full text-left border-collapse min-w-[560px]">
@@ -317,6 +322,7 @@ export const ManagerOverview: React.FC = () => {
                       <div>
                         <div className="font-bold text-[#202B27]">{item.name}</div>
                         <div className="text-[11px] text-[#78847D] mt-0.5">{item.subtext}</div>
+
                       </div>
                     </div>
                   </td>

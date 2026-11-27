@@ -15,8 +15,11 @@ import {
 import { Badge } from '../common/Badge';
 
 export const MyReferrals: React.FC = () => {
-  const { currentManager, allManagers, restaurants } = useApp();
+  const { currentManager, allManagers, restaurants, directReferralBonus, directReferralThreshold } = useApp();
   const [copied, setCopied] = useState(false);
+
+  const formattedBonus = `₹${directReferralBonus.toLocaleString('en-IN')}`;
+  const formattedThreshold = `₹${directReferralThreshold.toLocaleString('en-IN')}`;
 
   // Managers referred directly by current manager
   const myReferredManagers = allManagers.filter(
@@ -70,7 +73,7 @@ export const MyReferrals: React.FC = () => {
               Your Exclusive Referral Code
             </h2>
             <p className="text-xs text-[#E2E9E3]/90 leading-relaxed">
-              New managers must register with a referral code. Share yours to onboard colleagues and earn a one-time ₹2,000 bonus after their first qualifying restaurant order.
+              Every new manager is required to register with a valid referral code. Share your code to onboard colleagues and earn a one-time {formattedBonus} bonus on their first qualifying restaurant order.
             </p>
           </div>
 
@@ -112,7 +115,7 @@ export const MyReferrals: React.FC = () => {
                 <th className="py-3 px-4">Joined Date</th>
                 <th className="py-3 px-4">Referred Restaurants</th>
                 <th className="py-3 px-4">Total Sales</th>
-                <th className="py-3 px-4 text-center">₹2,000 Referral Bonus Status</th>
+                <th className="py-3 px-4 text-center">{formattedBonus} Referral Bonus Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E9E3]">
@@ -124,7 +127,7 @@ export const MyReferrals: React.FC = () => {
                 </tr>
               ) : (
                 myReferredManagers.map(mgr => {
-                  const hasQualifying = mgr.totalSalesGenerated >= 25000;
+                  const hasQualifying = mgr.totalSalesGenerated >= directReferralThreshold;
                   return (
                     <tr key={mgr.id} className="hover:bg-[#F7F5EF] transition-colors">
                       <td className="py-3 px-4">
@@ -151,7 +154,7 @@ export const MyReferrals: React.FC = () => {
                       <td className="py-3 px-4 text-center">
                         {hasQualifying ? (
                           <span className="inline-flex items-center gap-1 bg-[#21865A]/10 text-[#21865A] border border-[#21865A]/30 px-2.5 py-0.5 rounded-full font-bold text-[11px]">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> ₹2,000 Credited
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {formattedBonus} Credited
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 bg-[#D99A32]/10 text-[#D99A32] border border-[#D99A32]/30 px-2.5 py-0.5 rounded-full font-medium text-[11px]">
