@@ -29,8 +29,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<'login' | 'register' | 'admin'>('login');
   
   // Login State
-  const [loginMobile, setLoginMobile] = useState('9876543210');
-  const [loginPassword, setLoginPassword] = useState('password123');
+  const [loginMobile, setLoginMobile] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
   // Register State
   const [regName, setRegName] = useState('');

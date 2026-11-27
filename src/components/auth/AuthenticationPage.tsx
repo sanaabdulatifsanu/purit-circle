@@ -26,8 +26,8 @@ export const AuthenticationPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   
   // Sign In Form State
-  const [phone, setPhone] = useState('9876543210');
-  const [password, setPassword] = useState('password123');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
 
   // Sign Up Form State
   const [name, setName] = useState('');
