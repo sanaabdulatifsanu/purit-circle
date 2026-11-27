@@ -37,7 +37,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [regMobile, setRegMobile] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
-  const [regReferralCode, setRegReferralCode] = useState('1001'); // default to initial code 1001
+  const [regReferralCode, setRegReferralCode] = useState('');
+
+  // Dynamic Lookup for Referral Code Owner in Modal
+  const matchedModalReferrer = regReferralCode.trim()
+    ? allManagers.find(m => m.referralCode.trim().toUpperCase() === regReferralCode.trim().toUpperCase())
+    : null;
 
   // Admin Access Code State (PRD Section 5: risasi123)
   const [adminCodeInput, setAdminCodeInput] = useState('');
@@ -238,21 +243,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               />
             </div>
 
-            <div className="p-3 bg-[#F7F5EF] border border-[#D5AE62]/50 rounded-xl space-y-1">
+            <div className="p-3 bg-[#F7F5EF] border border-[#D5AE62]/50 rounded-xl space-y-2">
               <label className="font-bold text-[#123C32] block flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-[#D5AE62]" /> Mandatory Referral Code *
               </label>
               <input 
                 type="text"
                 required
-                placeholder="Enter referral code (e.g. 1001 or A1001)"
+                placeholder="Enter referral code"
                 value={regReferralCode}
                 onChange={e => setRegReferralCode(e.target.value.toUpperCase())}
-                className="w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono font-bold text-[#123C32] bg-white"
+                className="w-full px-3 py-1.5 rounded-lg border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono font-bold text-[#123C32] bg-white text-xs"
               />
-              <span className="text-[10px] text-[#78847D] block">
-                Initial Manager code <span className="font-mono font-bold text-[#123C32]">1001</span> or any active manager code is accepted.
-              </span>
+
+              {/* Dynamic Referral Code Belonging Name */}
+              {matchedModalReferrer ? (
+                <div className="flex items-center gap-1.5 p-2 bg-[#21865A]/10 border border-[#21865A]/30 rounded-lg text-xs text-[#21865A] font-semibold animate-in fade-in duration-150">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-[#21865A]" />
+                  <span>
+                    Referred by: <strong className="text-[#123C32]">{matchedModalReferrer.name}</strong>
+                  </span>
+                </div>
+              ) : regReferralCode.trim().length >= 3 ? (
+                <div className="flex items-center gap-1.5 p-2 bg-[#D9534F]/10 border border-[#D9534F]/30 rounded-lg text-xs text-[#D9534F] font-medium animate-in fade-in duration-150">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-[#D9534F]" />
+                  <span>No manager found for code &quot;{regReferralCode.trim()}&quot;</span>
+                </div>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-2 gap-2">

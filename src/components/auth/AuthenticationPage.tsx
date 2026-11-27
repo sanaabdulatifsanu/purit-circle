@@ -20,6 +20,7 @@ export const AuthenticationPage: React.FC = () => {
     loginAsManager, 
     loginAsAdmin, 
     registerManager, 
+    allManagers
   } = useApp();
 
   // Exactly 2 options: 'signin' and 'signup'
@@ -34,7 +35,12 @@ export const AuthenticationPage: React.FC = () => {
   const [signupPhone, setSignupPhone] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [referralCode, setReferralCode] = useState('1001'); // Initial code 1001 prefilled
+  const [referralCode, setReferralCode] = useState('');
+
+  // Dynamic Lookup for Referral Code Owner
+  const matchedReferrer = referralCode.trim()
+    ? allManagers.find(m => m.referralCode.trim().toUpperCase() === referralCode.trim().toUpperCase())
+    : null;
 
   // Forgot Password Pop-up State
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
@@ -366,21 +372,35 @@ export const AuthenticationPage: React.FC = () => {
               </div>
 
               {/* Referral Code Field */}
-              <div className="p-3 bg-[#F7F5EF] border border-[#D5AE62]/50 rounded-2xl space-y-1">
+              <div className="p-3 bg-[#F7F5EF] border border-[#D5AE62]/50 rounded-2xl space-y-2">
                 <label className="font-bold text-[#123C32] flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#D5AE62]" /> Referral Code *
                   </span>
-                  <span className="text-[10px] text-[#78847D] font-normal">Initial: 1001</span>
                 </label>
                 <input 
                   type="text"
                   required
-                  placeholder="e.g. 1001 or A1001"
+                  placeholder="Enter referral code"
                   value={referralCode}
                   onChange={e => setReferralCode(e.target.value.toUpperCase())}
                   className="w-full px-3 py-2 rounded-xl border border-[#E2E9E3] focus:border-[#123C32] focus:outline-none uppercase font-mono font-bold text-xs text-[#123C32] bg-white"
                 />
+
+                {/* Dynamic Referral Code Belonging Name */}
+                {matchedReferrer ? (
+                  <div className="flex items-center gap-2 p-2 bg-[#21865A]/10 border border-[#21865A]/30 rounded-xl text-xs text-[#21865A] font-semibold animate-in fade-in duration-150">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-[#21865A]" />
+                    <span>
+                      Referred by: <strong className="text-[#123C32]">{matchedReferrer.name}</strong>
+                    </span>
+                  </div>
+                ) : referralCode.trim().length >= 3 ? (
+                  <div className="flex items-center gap-2 p-2 bg-[#D9534F]/10 border border-[#D9534F]/30 rounded-xl text-xs text-[#D9534F] font-medium animate-in fade-in duration-150">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-[#D9534F]" />
+                    <span>No manager found for code &quot;{referralCode.trim()}&quot;</span>
+                  </div>
+                ) : null}
               </div>
 
               <button 
